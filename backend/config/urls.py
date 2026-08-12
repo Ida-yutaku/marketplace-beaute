@@ -6,11 +6,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/auth/", include("users.urls")),
-    path("api/", include("shops.urls")),
-    path("api/", include("catalog.urls")),
-    path("api/", include("orders.urls")),
-    path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # On retire "api/" ici car il est déjà inclus dans l'URL de base du frontend (API_BASE_URL)
+    path("auth/", include("users.urls")),
+    path("", include("shops.urls")),
+    path("", include("catalog.urls")),
+    path("", include("orders.urls")),
+    path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
 if settings.DEBUG:
