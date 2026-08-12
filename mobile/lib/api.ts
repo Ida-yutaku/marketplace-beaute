@@ -4,7 +4,11 @@ import { Platform } from "react-native";
 // ⚠️ IMPORTANT : sur un téléphone physique/émulateur, "localhost" pointe vers
 // le téléphone lui-même, pas vers ton ordinateur. Remplace par l'adresse IP
 // locale de ta machine, trouvable avec `ip a` (Linux) ou `ipconfig` (Windows).
-const API_URL = " https://booted-false-playmate.ngrok-free.dev/api";
+const RAW_API_URL = 
+  process.env.EXPO_PUBLIC_API_URL || 'https://marketplace-beaute-api.onrender.com/api';
+
+// On nettoie l'URL pour supprimer un éventuel slash final et éviter les doubles slashes "//"
+export const API_BASE_URL = RAW_API_URL.replace(/\/$/, "");
 
 async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem("access_token");
@@ -36,7 +40,10 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = await getToken();
 
-  const res = await fetch(`${API_URL}${path}`, {
+  // S'assure que path commence bien par "/"
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -72,7 +79,10 @@ export async function apiFetchFormData<T>(
 ): Promise<T> {
   const token = await getToken();
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  // CORRECTION : Remplacement de API_URL par API_BASE_URL
+  const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
     method,
     headers: {
       "ngrok-skip-browser-warning": "true",
