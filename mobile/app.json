@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Marketplace Beauté",
+    "slug": "marketplace-beaute",
+    "scheme": "marketplacebeaute",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": ["expo-router"],
+    "ios": {
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": { "package": "com.marketplacebeaute.app" }
+  }
+}

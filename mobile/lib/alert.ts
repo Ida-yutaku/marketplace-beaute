@@ -1,0 +1,22 @@
+import { Alert, Platform } from "react-native";
+
+export function showAlert(title: string, message?: string) {
+  if (Platform.OS === "web") {
+    window.alert(message ? `${title}\n\n${message}` : title);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+export function confirmAlert(title: string, message: string, onConfirm: () => void) {
+  if (Platform.OS === "web") {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: "Annuler", style: "cancel" },
+      { text: "Confirmer", style: "destructive", onPress: onConfirm },
+    ]);
+  }
+}
