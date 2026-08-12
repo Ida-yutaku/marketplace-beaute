@@ -2,12 +2,17 @@
 # exit on error
 set -o errexit
 
-# Se déplacer dans le dossier du backend Django
 cd backend
 
-# Installer les dépendances
 pip install -r requirements.txt
 
-# Collecter les fichiers statiques et faire les migrations
 python manage.py collectstatic --no-input
 python manage.py migrate
+
+# Créer un superutilisateur automatiquement s'il n'existe pas
+python manage.py shell -c "
+from users.models import User;
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@example.com', 'AdminPass123!')
+    print('Superuser créé avec succès !')
+"
