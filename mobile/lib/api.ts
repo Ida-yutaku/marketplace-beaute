@@ -1,13 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// ⚠️ IMPORTANT : sur un téléphone physique/émulateur, "localhost" pointe vers
-// le téléphone lui-même, pas vers ton ordinateur. Remplace par l'adresse IP
-// locale de ta machine, trouvable avec `ip a` (Linux) ou `ipconfig` (Windows).
 const RAW_API_URL = 
   process.env.EXPO_PUBLIC_API_URL || 'https://marketplace-beaute-api.onrender.com/api';
 
-// On nettoie l'URL pour supprimer un éventuel slash final et éviter les doubles slashes "//"
 export const API_BASE_URL = RAW_API_URL.replace(/\/$/, "");
 
 async function getToken(): Promise<string | null> {
@@ -19,7 +15,6 @@ export class ApiError extends Error {
   fields: Record<string, string[]>;
 
   constructor(status: number, body: any) {
-    // Django renvoie soit {"champ": ["message"]}, soit {"detail": "message"}
     const fields: Record<string, string[]> = {};
     if (body && typeof body === "object") {
       for (const key of Object.keys(body)) {
@@ -40,8 +35,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = await getToken();
 
-  // S'assure que path commence bien par "/"
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
   const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
     ...options,
@@ -53,9 +47,6 @@ export async function apiFetch<T>(
     },
   });
 
-  // On lit le corps UNE SEULE FOIS (en texte brut), puis on essaie de le
-  // parser en JSON. Lire res.json() puis res.text() en fallback casse sur
-  // mobile natif ("body stream already read").
   const rawText = await res.text();
 
   if (!res.ok) {
@@ -81,7 +72,6 @@ export async function apiFetchFormData<T>(
 
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  // CORRECTION : Remplacement de API_URL par API_BASE_URL
   const res = await fetch(`${API_BASE_URL}${cleanPath}`, {
     method,
     headers: {
