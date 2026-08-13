@@ -50,7 +50,7 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={() => router.push('/register' as any)}
           >
-            <Text style={styles.primaryButtonText}>Rejoindre l'aventure  →</Text>
+            <Text style={styles.primaryButtonText}>Sublimons ensemble →</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
