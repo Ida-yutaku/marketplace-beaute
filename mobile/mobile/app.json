@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "She's",
+    "slug": "marketplace-beaute",
+    "scheme": "marketplacebeaute",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "plugins": ["expo-router"],
+    "ios": {
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": { 
+      "package": "com.marketplacebeaute.app" 
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "She's",
+      "shortName": "She's",
+      "pwa": true,
+      "themeColor": "#FF69B4",
+      "backgroundColor": "#0F0814"
+    }
+  }
+}
