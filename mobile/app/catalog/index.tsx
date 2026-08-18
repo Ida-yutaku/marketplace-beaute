@@ -6,6 +6,7 @@ import { api, Product, Category } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
 import { colors } from "@/lib/theme";
 import ProductCard from "@/components/ProductCard";
+import BottomNav from "@/components/BottomNav";
 
 export default function CatalogScreen() {
   const router = useRouter();
@@ -31,9 +32,6 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
-        </TouchableOpacity>
         <Text style={styles.title}>Boutique</Text>
         <TouchableOpacity style={styles.cartBtn} onPress={() => router.push("/cart")}>
           <Ionicons name="bag-outline" size={20} color={colors.onPrimary} />
@@ -78,6 +76,7 @@ export default function CatalogScreen() {
           />
         )}
       />
+      <BottomNav />
     </SafeAreaView>
   );
 }

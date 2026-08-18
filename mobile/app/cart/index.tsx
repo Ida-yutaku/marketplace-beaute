@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "@/contexts/CartContext";
 import { api, ApiError } from "@/lib/api";
 import { colors } from "@/lib/theme";
+import BottomNav from "@/components/BottomNav";
 
 export default function CartScreen() {
   const router = useRouter();
@@ -80,6 +81,7 @@ export default function CartScreen() {
           </TouchableOpacity>
         </View>
       )}
+      <BottomNav />
     </SafeAreaView>
   );
 }

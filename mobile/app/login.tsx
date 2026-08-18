@@ -30,7 +30,7 @@ export default function LoginScreen() {
     try {
       await api.login(email, password);
       const me = await api.me();
-      router.replace(me.is_seller ? "/vendeur" : "/catalog");
+      router.replace(me.is_seller ? "/vendeur" : "/home");
     } catch (err) {
       triggerShake();
       if (err instanceof ApiError) setErrors(err.fields);

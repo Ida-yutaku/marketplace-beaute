@@ -41,8 +41,8 @@ export default function CartSuccessScreen() {
       <Text style={styles.subtitle}>Commande #{order_id}</Text>
       {checking && <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />}
 
-      <TouchableOpacity style={styles.button} onPress={() => router.replace("/catalog")} activeOpacity={0.85}>
-        <Text style={styles.buttonText}>Retour au catalogue</Text>
+      <TouchableOpacity style={styles.button} onPress={() => router.replace("/home")} activeOpacity={0.85}>
+        <Text style={styles.buttonText}>Retour à l'accueil</Text>
       </TouchableOpacity>
     </View>
   );

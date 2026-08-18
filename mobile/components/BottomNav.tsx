@@ -12,7 +12,7 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
-  { name: "Accueil", icon: "home-outline", iconActive: "home", path: "/" },
+  { name: "Accueil", icon: "home-outline", iconActive: "home", path: "/home" },
   { name: "Boutique", icon: "storefront-outline", iconActive: "storefront", path: "/catalog" },
   { name: "Panier", icon: "bag-outline", iconActive: "bag", path: "/cart" },
   { name: "Profil", icon: "person-outline", iconActive: "person", path: "/vendeur" },
@@ -22,14 +22,8 @@ export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
 
-  function resolvePath(tabPath: string) {
-    if (tabPath === "/") return "/";
-    return tabPath;
-  }
-
   function isActive(tabPath: string) {
-    if (tabPath === "/") return pathname === "/";
-    return pathname.startsWith(tabPath);
+    return pathname === tabPath || pathname.startsWith(tabPath + "/");
   }
 
   return (
@@ -48,12 +42,7 @@ export default function BottomNav() {
               size={22}
               color={active ? colors.primary : colors.outline}
             />
-            <Text
-              style={[
-                styles.label,
-                active && styles.labelActive,
-              ]}
-            >
+            <Text style={[styles.label, active && styles.labelActive]}>
               {tab.name}
             </Text>
             {active && <View style={styles.indicator} />}
