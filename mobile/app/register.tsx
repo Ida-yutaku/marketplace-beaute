@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Switch, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
+import { View, Text, TextInput, StyleSheet, Switch, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSequence, withTiming } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert } from "@/lib/alert";
-import AnimatedButton from "@/components/AnimatedButton";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -33,12 +33,8 @@ export default function RegisterScreen() {
       router.replace("/login");
     } catch (err) {
       triggerShake();
-      if (err instanceof ApiError) {
-        setErrors(err.fields);
-      } else {
-        const message = err instanceof Error ? err.message : String(err);
-        setErrors({ detail: [`Erreur réseau : ${message}`] });
-      }
+      if (err instanceof ApiError) setErrors(err.fields);
+      else setErrors({ detail: [`Erreur : ${err instanceof Error ? err.message : String(err)}`] });
     } finally {
       setLoading(false);
     }
@@ -46,9 +42,14 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 24, gap: 8, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.duration(400)}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
+        </TouchableOpacity>
+
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <Text style={styles.title}>{form.is_seller ? "Créer un compte vendeur" : "Créer un compte acheteur"}</Text>
+          <Text style={styles.subtitle}>Rejoignez la communauté LUMINA</Text>
         </Animated.View>
 
         <Animated.View style={shakeStyle}>
@@ -56,38 +57,42 @@ export default function RegisterScreen() {
 
           <Animated.View entering={FadeInDown.delay(80).duration(400)}>
             <Text style={styles.label}>Nom d'utilisateur</Text>
-            <TextInput style={[styles.input, errors.username && styles.inputError]} placeholder="Nom d'utilisateur" placeholderTextColor={colors.textMuted} value={form.username} onChangeText={(v) => setForm({ ...form, username: v })} />
+            <TextInput style={[styles.input, errors.username && styles.inputError]} placeholder="Votre nom" placeholderTextColor={colors.outline} value={form.username} onChangeText={(v) => setForm({ ...form, username: v })} />
+            {!!errors.username && <Text style={styles.fieldError}>{errors.username[0]}</Text>}
           </Animated.View>
-          {!!errors.username && <Text style={styles.fieldError}>{errors.username[0]}</Text>}
 
           <Animated.View entering={FadeInDown.delay(140).duration(400)}>
             <Text style={styles.label}>Email</Text>
-            <TextInput style={[styles.input, errors.email && styles.inputError]} placeholder="Email" placeholderTextColor={colors.textMuted} autoCapitalize="none" keyboardType="email-address" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} />
+            <TextInput style={[styles.input, errors.email && styles.inputError]} placeholder="votre@email.com" placeholderTextColor={colors.outline} autoCapitalize="none" keyboardType="email-address" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} />
+            {!!errors.email && <Text style={styles.fieldError}>{errors.email[0]}</Text>}
           </Animated.View>
-          {!!errors.email && <Text style={styles.fieldError}>{errors.email[0]}</Text>}
 
           <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <Text style={styles.label}>Mot de passe (8 caractères min.)</Text>
-            <TextInput style={[styles.input, errors.password && styles.inputError]} placeholder="Mot de passe" placeholderTextColor={colors.textMuted} secureTextEntry value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} />
+            <TextInput style={[styles.input, errors.password && styles.inputError]} placeholder="••••••••" placeholderTextColor={colors.outline} secureTextEntry value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} />
+            {!!errors.password && <Text style={styles.fieldError}>{errors.password[0]}</Text>}
+            {form.password.length > 0 && <Text style={styles.hint}>{form.password.length} caractère(s)</Text>}
           </Animated.View>
-          {!!errors.password && <Text style={styles.fieldError}>{errors.password[0]}</Text>}
-          {form.password.length > 0 && <Text style={styles.hint}>{form.password.length} caractère(s) saisi(s)</Text>}
 
           <Animated.View entering={FadeInDown.delay(260).duration(400)}>
             <Text style={styles.label}>Nom de la boutique</Text>
-            <TextInput style={styles.input} placeholder="Nom de la boutique" placeholderTextColor={colors.textMuted} value={form.shop_name} onChangeText={(v) => setForm({ ...form, shop_name: v })} />
+            <TextInput style={styles.input} placeholder="Mon Salon" placeholderTextColor={colors.outline} value={form.shop_name} onChangeText={(v) => setForm({ ...form, shop_name: v })} />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(320).duration(400)} style={styles.switchRow}>
-            <Text style={{ color: colors.text }}>Compte vendeur</Text>
-            <Switch value={form.is_seller} onValueChange={(v) => setForm({ ...form, is_seller: v })} trackColor={{ true: colors.primary }} />
+            <Text style={styles.switchLabel}>Compte vendeur</Text>
+            <Switch value={form.is_seller} onValueChange={(v) => setForm({ ...form, is_seller: v })} trackColor={{ true: colors.primaryContainer, false: colors.outlineVariant }} thumbColor={form.is_seller ? colors.primary : colors.surfaceDim} />
           </Animated.View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(380).duration(400)}>
-          <AnimatedButton style={styles.button} onPress={handleSubmit} disabled={loading}>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading} activeOpacity={0.85}>
             <Text style={styles.buttonText}>{loading ? "Création..." : "S'inscrire"}</Text>
-          </AnimatedButton>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/login")} style={styles.linkBtn}>
+            <Text style={styles.link}>Déjà un compte ? Se connecter</Text>
+          </TouchableOpacity>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -95,15 +100,51 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  title: { fontSize: 24, fontWeight: "800", color: colors.text, marginBottom: 12 },
-  label: { fontSize: 12, fontWeight: "600", color: colors.textMuted, marginBottom: 4, marginLeft: 2 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: colors.border },
-  inputError: { borderColor: colors.danger },
-  fieldError: { color: colors.danger, fontSize: 12, marginTop: 2, marginLeft: 4 },
-  hint: { color: colors.textMuted, fontSize: 11, marginTop: 2, marginLeft: 4 },
-  errorBanner: { backgroundColor: colors.dangerBg, color: colors.danger, padding: 10, borderRadius: 8, fontSize: 13, marginBottom: 8 },
-  switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8 },
-  button: { backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 8 },
-  buttonText: { color: "white", fontWeight: "700", fontSize: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 20, gap: 6, paddingBottom: 60 },
+  back: { position: "absolute", top: 50, left: 20, zIndex: 1 },
+  header: { marginBottom: 20, marginTop: 20 },
+  title: { fontSize: 26, fontWeight: "700", color: colors.onSurface },
+  subtitle: { fontSize: 14, color: colors.outline, marginTop: 4 },
+  label: { fontSize: 12, fontWeight: "600", color: colors.onSurfaceVariant, marginBottom: 6, marginLeft: 2 },
+  input: {
+    backgroundColor: colors.surfaceContainerLow,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    fontSize: 15,
+    color: colors.onSurface,
+    marginBottom: 4,
+  },
+  inputError: { borderColor: colors.error },
+  fieldError: { color: colors.error, fontSize: 12, marginTop: 2, marginLeft: 4, marginBottom: 6 },
+  hint: { color: colors.outline, fontSize: 11, marginTop: 2, marginLeft: 4 },
+  errorBanner: {
+    backgroundColor: colors.errorContainer,
+    color: colors.onErrorContainer,
+    padding: 12,
+    borderRadius: 10,
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  switchLabel: { color: colors.onSurface, fontSize: 14, fontWeight: "500" },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  buttonText: { color: colors.onPrimary, fontWeight: "700", fontSize: 15 },
+  linkBtn: { marginTop: 16, alignItems: "center", marginBottom: 20 },
+  link: { color: colors.primary, fontWeight: "600", fontSize: 14 },
 });

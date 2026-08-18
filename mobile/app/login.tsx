@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSequence, withTiming } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "@/lib/api";
 import { colors } from "@/lib/theme";
-import AnimatedButton from "@/components/AnimatedButton";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -13,10 +13,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const shake = useSharedValue(0);
-
-  const shakeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shake.value }],
-  }));
+  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
 
   function triggerShake() {
     shake.value = withSequence(
@@ -36,12 +33,8 @@ export default function LoginScreen() {
       router.replace(me.is_seller ? "/vendeur" : "/catalog");
     } catch (err) {
       triggerShake();
-      if (err instanceof ApiError) {
-        setErrors(err.fields);
-      } else {
-        const message = err instanceof Error ? err.message : String(err);
-        setErrors({ detail: [`Erreur réseau : ${message}`] });
-      }
+      if (err instanceof ApiError) setErrors(err.fields);
+      else setErrors({ detail: [`Erreur : ${err instanceof Error ? err.message : String(err)}`] });
     } finally {
       setLoading(false);
     }
@@ -49,47 +42,55 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 24, gap: 8, justifyContent: "center", flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.duration(400)}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
+        </TouchableOpacity>
+
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <Text style={styles.title}>Connexion</Text>
+          <Text style={styles.subtitle}>Accédez à votre espace LUMINA</Text>
         </Animated.View>
 
         <Animated.View style={shakeStyle}>
           {!!errors.detail && <Text style={styles.errorBanner}>{errors.detail[0]}</Text>}
 
           <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            <Text style={styles.label}>Email</Text>
             <TextInput
               style={[styles.input, errors.email && styles.inputError]}
-              placeholder="Email"
-              placeholderTextColor={colors.textMuted}
+              placeholder="votre@email.com"
+              placeholderTextColor={colors.outline}
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
             />
+            {!!errors.email && <Text style={styles.fieldError}>{errors.email[0]}</Text>}
           </Animated.View>
-          {!!errors.email && <Text style={styles.fieldError}>{errors.email[0]}</Text>}
 
           <Animated.View entering={FadeInDown.delay(180).duration(400)}>
+            <Text style={styles.label}>Mot de passe</Text>
             <TextInput
               style={[styles.input, errors.password && styles.inputError]}
-              placeholder="Mot de passe"
-              placeholderTextColor={colors.textMuted}
+              placeholder="••••••••"
+              placeholderTextColor={colors.outline}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
             />
+            {!!errors.password && <Text style={styles.fieldError}>{errors.password[0]}</Text>}
           </Animated.View>
-          {!!errors.password && <Text style={styles.fieldError}>{errors.password[0]}</Text>}
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(260).duration(400)}>
-          <AnimatedButton style={styles.button} onPress={handleSubmit} disabled={loading}>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading} activeOpacity={0.85}>
             <Text style={styles.buttonText}>{loading ? "Connexion..." : "Se connecter"}</Text>
-          </AnimatedButton>
-          <AnimatedButton style={{ marginTop: 16 }} onPress={() => router.push("/register")}>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/register")} style={styles.linkBtn}>
             <Text style={styles.link}>Pas encore de compte ? S'inscrire</Text>
-          </AnimatedButton>
+          </TouchableOpacity>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -97,13 +98,42 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  title: { fontSize: 24, fontWeight: "800", color: colors.text, marginBottom: 12 },
-  input: { backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: colors.border, marginBottom: 8 },
-  inputError: { borderColor: colors.danger },
-  fieldError: { color: colors.danger, fontSize: 12, marginTop: -4, marginLeft: 4, marginBottom: 8 },
-  errorBanner: { backgroundColor: colors.dangerBg, color: colors.danger, padding: 10, borderRadius: 8, fontSize: 13, marginBottom: 8 },
-  button: { backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 14, alignItems: "center", marginTop: 8 },
-  buttonText: { color: "white", fontWeight: "700", fontSize: 16 },
-  link: { color: colors.primaryDark, textAlign: "center", fontWeight: "600" },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 20, gap: 8, justifyContent: "center", flexGrow: 1 },
+  back: { position: "absolute", top: 50, left: 20, zIndex: 1 },
+  header: { marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: "700", color: colors.onSurface },
+  subtitle: { fontSize: 14, color: colors.outline, marginTop: 4 },
+  label: { fontSize: 12, fontWeight: "600", color: colors.onSurfaceVariant, marginBottom: 6, marginLeft: 2 },
+  input: {
+    backgroundColor: colors.surfaceContainerLow,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+    fontSize: 15,
+    color: colors.onSurface,
+    marginBottom: 4,
+  },
+  inputError: { borderColor: colors.error },
+  fieldError: { color: colors.error, fontSize: 12, marginTop: 2, marginLeft: 4, marginBottom: 6 },
+  errorBanner: {
+    backgroundColor: colors.errorContainer,
+    color: colors.onErrorContainer,
+    padding: 12,
+    borderRadius: 10,
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  buttonText: { color: colors.onPrimary, fontWeight: "700", fontSize: 15 },
+  linkBtn: { marginTop: 16, alignItems: "center" },
+  link: { color: colors.primary, fontWeight: "600", fontSize: 14 },
 });

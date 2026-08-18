@@ -1,13 +1,48 @@
+import { Platform } from "react-native";
+
+const IS_WEB = Platform.OS === "web";
+
+export const FONTS = {
+  display: IS_WEB ? "Playfair Display" : undefined,
+  body: IS_WEB ? "Hanken Grotesk" : undefined,
+};
+
 export const colors = {
-  primary: "#EC4899",
-  primaryDark: "#BE185D",
-  primaryLight: "#FBCFE8",
-  bg: "#FFF1F6",
-  card: "#FFFFFF",
-  text: "#1f2937",
-  textMuted: "#9ca3af",
-  border: "#F3D6E4",
+  primary: "#8a4853",
+  primaryContainer: "#a6606b",
+  onPrimary: "#ffffff",
+  onPrimaryContainer: "#fffbff",
+  inversePrimary: "#ffb2bc",
+
+  secondary: "#675c58",
+  secondaryContainer: "#ebddd7",
+  onSecondary: "#ffffff",
+  onSecondaryContainer: "#6b605c",
+
+  tertiary: "#615b52",
+  tertiaryContainer: "#7b736a",
+
+  background: "#fcf9f8",
+  surface: "#fcf9f8",
+  surfaceDim: "#dcd9d9",
+  surfaceContainerLowest: "#ffffff",
+  surfaceContainerLow: "#f6f3f2",
+  surfaceContainer: "#f0eded",
+  surfaceContainerHigh: "#eae7e7",
+  surfaceContainerHighest: "#e5e2e1",
+  surfaceVariant: "#e5e2e1",
+
+  onSurface: "#1b1c1c",
+  onSurfaceVariant: "#524345",
+  onBackground: "#1b1c1c",
+
+  outline: "#857374",
+  outlineVariant: "#d7c1c3",
+
+  error: "#ba1a1a",
+  onError: "#ffffff",
+  errorContainer: "#ffdad6",
+  onErrorContainer: "#93000a",
+
   success: "#16a34a",
-  danger: "#dc2626",
-  dangerBg: "#fee2e2",
 };

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Linking } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "@/contexts/CartContext";
 import { api, ApiError } from "@/lib/api";
-import { COLORS, SPACING } from "@/constants/theme";
+import { colors } from "@/lib/theme";
 
 export default function CartScreen() {
   const router = useRouter();
@@ -18,74 +19,124 @@ export default function CartScreen() {
       const { checkout_url, order_id } = await api.checkout(items);
       clearCart();
       router.push(`/cart/success?order_id=${order_id}`);
-      const supported = await Linking.canOpenURL(checkout_url);
-      if (supported) {
-        await Linking.openURL(checkout_url);
-      } else {
-        Alert.alert("Erreur", "Impossible d'ouvrir la page de paiement.");
-      }
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Le paiement n'a pas pu être initié.";
-      Alert.alert("Erreur", message);
+      alert(message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Mon panier</Text>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Mon panier</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
       <FlatList
         data={cart}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={styles.empty}>Ton panier est vide.</Text>}
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Ionicons name="bag-outline" size={48} color={colors.outlineVariant} />
+            <Text style={styles.empty}>Ton panier est vide.</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.itemTitle}>{item.title || item.name}</Text>
-              <Text style={styles.itemPrice}>{item.price} € x {item.quantity}</Text>
+            <View style={styles.rowLeft}>
+              <Text style={styles.itemTitle} numberOfLines={1}>{item.title || item.name}</Text>
+              <Text style={styles.itemPrice}>{item.price} €</Text>
             </View>
             <View style={styles.qtyRow}>
               <TouchableOpacity onPress={() => decreaseQuantity(item.id)} style={styles.qtyBtn}>
-                <Text style={styles.qtyBtnText}>−</Text>
+                <Ionicons name="remove" size={16} color={colors.primary} />
               </TouchableOpacity>
               <Text style={styles.qty}>{item.quantity}</Text>
               <TouchableOpacity onPress={() => increaseQuantity(item.id)} style={styles.qtyBtn}>
-                <Text style={styles.qtyBtnText}>+</Text>
+                <Ionicons name="add" size={16} color={colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => removeFromCart(item.id)}>
-                <Text style={styles.removeText}>✕</Text>
+              <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeBtn}>
+                <Ionicons name="close" size={16} color={colors.error} />
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
+
       {cart.length > 0 && (
         <View style={styles.footer}>
-          <Text style={styles.total}>Total : {totalPrice} €</Text>
-          <TouchableOpacity style={styles.button} onPress={handleCheckout} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? "Redirection..." : "Payer avec Mobile Money"}</Text>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalPrice}>{totalPrice} €</Text>
+          </View>
+          <TouchableOpacity style={styles.payBtn} onPress={handleCheckout} disabled={loading} activeOpacity={0.85}>
+            <Text style={styles.payBtnText}>{loading ? "Redirection..." : "Payer"}</Text>
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, padding: SPACING.lg },
-  title: { fontSize: 22, fontWeight: "800", color: COLORS.primaryText, marginBottom: 12 },
-  empty: { textAlign: "center", color: COLORS.textMuted, marginTop: 40 },
-  row: { flexDirection: "row", alignItems: "center", backgroundColor: "white", borderRadius: 12, padding: 12, marginBottom: 8 },
-  itemTitle: { fontWeight: "700", color: "#1f2937" },
-  itemPrice: { color: COLORS.textMuted, fontSize: 12, marginTop: 2 },
-  qtyRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  qtyBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: COLORS.interactive, alignItems: "center", justifyContent: "center" },
-  qtyBtnText: { fontWeight: "800", color: COLORS.primaryDark },
-  qty: { fontWeight: "700", minWidth: 16, textAlign: "center" },
-  removeText: { color: COLORS.error, marginLeft: 8, fontSize: 16 },
-  footer: { borderTopWidth: 1, borderTopColor: "#f0d5e0", paddingTop: 12, marginTop: 8 },
-  total: { fontSize: 16, fontWeight: "800", marginBottom: 10, color: "#1f2937" },
-  button: { backgroundColor: COLORS.primaryDark, paddingVertical: 16, borderRadius: 14, alignItems: "center" },
-  buttonText: { color: "white", fontWeight: "700", fontSize: 15 },
+  safe: { flex: 1, backgroundColor: colors.background },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  title: { fontSize: 20, fontWeight: "700", color: colors.onSurface },
+  list: { padding: 16, gap: 8 },
+  emptyWrap: { alignItems: "center", marginTop: 80, gap: 12 },
+  empty: { color: colors.outline, fontSize: 15 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 4,
+  },
+  rowLeft: { flex: 1 },
+  itemTitle: { fontWeight: "600", color: colors.onSurface, fontSize: 14 },
+  itemPrice: { color: colors.secondary, fontSize: 13, marginTop: 2 },
+  qtyRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  qtyBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceContainerHigh,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  qty: { fontWeight: "700", fontSize: 14, color: colors.onSurface, minWidth: 16, textAlign: "center" },
+  removeBtn: { marginLeft: 6 },
+  footer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.outlineVariant,
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  totalLabel: { fontSize: 16, fontWeight: "600", color: colors.onSurfaceVariant },
+  totalPrice: { fontSize: 20, fontWeight: "700", color: colors.onSurface },
+  payBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: "center",
+  },
+  payBtnText: { color: colors.onPrimary, fontWeight: "700", fontSize: 15 },
 });

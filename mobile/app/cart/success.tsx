@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
-import { COLORS } from "@/constants/theme";
+import { colors } from "@/lib/theme";
 
 export default function CartSuccessScreen() {
   const { order_id } = useLocalSearchParams<{ order_id: string }>();
@@ -20,21 +21,27 @@ export default function CartSuccessScreen() {
           setChecking(false);
           clearInterval(interval);
         }
-      } catch {
-        // on continue d'essayer
-      }
+      } catch {}
     }, 3000);
     return () => clearInterval(interval);
   }, [order_id]);
 
   return (
     <View style={styles.container}>
-      {checking && <ActivityIndicator color={COLORS.primaryDark} size="large" />}
+      <View style={styles.iconWrap}>
+        <Ionicons
+          name={status === "paid" ? "checkmark-circle" : status === "canceled" ? "close-circle" : "time-outline"}
+          size={64}
+          color={status === "paid" ? colors.success : status === "canceled" ? colors.error : colors.primary}
+        />
+      </View>
       <Text style={styles.title}>
-        {status === "paid" ? "Paiement confirmé 🎉" : status === "canceled" ? "Paiement annulé" : "En attente de confirmation..."}
+        {status === "paid" ? "Paiement confirmé" : status === "canceled" ? "Paiement annulé" : "En attente..."}
       </Text>
       <Text style={styles.subtitle}>Commande #{order_id}</Text>
-      <TouchableOpacity style={styles.button} onPress={() => router.replace("/catalog")}>
+      {checking && <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />}
+
+      <TouchableOpacity style={styles.button} onPress={() => router.replace("/catalog")} activeOpacity={0.85}>
         <Text style={styles.buttonText}>Retour au catalogue</Text>
       </TouchableOpacity>
     </View>
@@ -42,9 +49,16 @@ export default function CartSuccessScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  title: { fontSize: 20, fontWeight: "800", color: COLORS.primaryText, textAlign: "center" },
-  subtitle: { color: COLORS.textMuted },
-  button: { backgroundColor: COLORS.primaryDark, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 14, marginTop: 20 },
-  buttonText: { color: "white", fontWeight: "700" },
+  container: { flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 24, gap: 8 },
+  iconWrap: { marginBottom: 12 },
+  title: { fontSize: 22, fontWeight: "700", color: colors.onSurface, textAlign: "center" },
+  subtitle: { color: colors.outline, fontSize: 14 },
+  button: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 999,
+    marginTop: 24,
+  },
+  buttonText: { color: colors.onPrimary, fontWeight: "700" },
 });
