@@ -14,7 +14,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { api, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert } from "@/lib/alert";
-import BottomNav from "@/components/BottomNav";
+import SellerBottomNav from "@/components/SellerBottomNav";
 
 export default function BoutiquesScreen() {
   const router = useRouter();
@@ -54,16 +54,11 @@ export default function BoutiquesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
-        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerLabel}>ESPACE VENDEUR</Text>
           <Text style={styles.headerTitle}>Mes boutiques</Text>
         </View>
-        <View style={{ width: 30 }} />
       </View>
 
       <FlatList
@@ -79,11 +74,7 @@ export default function BoutiquesScreen() {
         }
         renderItem={({ item, index }) => (
           <Animated.View entering={FadeInDown.delay(index * 60).springify().damping(16)}>
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() => {}}
-            >
+            <TouchableOpacity style={styles.card} activeOpacity={0.8}>
               <View style={styles.cardIcon}>
                 <Ionicons name="storefront" size={20} color={colors.primary} />
               </View>
@@ -131,7 +122,7 @@ export default function BoutiquesScreen() {
         }
       />
 
-      <BottomNav />
+      <SellerBottomNav />
     </SafeAreaView>
   );
 }
@@ -145,7 +136,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
   },
-  backBtn: { padding: 4 },
   headerLabel: { fontSize: 10, fontWeight: "600", color: colors.primary, letterSpacing: 1.5 },
   headerTitle: { fontSize: 20, fontWeight: "700", color: colors.onSurface, marginTop: 2 },
   list: { padding: 16, paddingBottom: 100, gap: 10 },

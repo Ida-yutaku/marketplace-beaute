@@ -15,7 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { api, Order, Product, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert, confirmAlert } from "@/lib/alert";
-import BottomNav from "@/components/BottomNav";
+import SellerBottomNav from "@/components/SellerBottomNav";
+import ShopSwitcher from "@/components/ShopSwitcher";
 
 type FilterKey = "all" | "active" | "out";
 
@@ -32,6 +33,8 @@ export default function VendeurDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedShopId, setSelectedShopId] = useState<number | null>(null);
+  const [switcherVisible, setSwitcherVisible] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -56,13 +59,6 @@ export default function VendeurDashboard() {
     setRefreshing(false);
   }
 
-  function handleLogout() {
-    confirmAlert("Déconnexion", "Tu veux vraiment te déconnecter ?", async () => {
-      await api.logout();
-      router.replace("/login");
-    });
-  }
-
   function handleDelete(id: number, title: string) {
     confirmAlert("Supprimer", `Supprimer "${title}" ?`, async () => {
       try {
@@ -75,6 +71,10 @@ export default function VendeurDashboard() {
   }
 
   const filtered = products.filter((p) => {
+    if (selectedShopId !== null) {
+      const shop = shops.find((s) => s.id === selectedShopId);
+      if (shop && p.shop_name !== shop.name) return false;
+    }
     if (filter === "active") return p.is_available && p.stock > 0;
     if (filter === "out") return p.stock <= 0;
     return true;
@@ -84,11 +84,15 @@ export default function VendeurDashboard() {
     .filter((o) => o.status === "paid")
     .reduce((sum, o) => sum + Number(o.total_amount), 0);
 
+  const selectedShopName = selectedShopId === null
+    ? null
+    : shops.find((s) => s.id === selectedShopId)?.name ?? null;
+
   const stats = [
     {
       icon: "cube-outline" as const,
       label: "Produits",
-      value: products.length,
+      value: filtered.length,
       bg: colors.roseBg,
       iconColor: colors.primary,
     },
@@ -119,12 +123,21 @@ export default function VendeurDashboard() {
     <SafeAreaView style={styles.safe}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <TouchableOpacity
+          onPress={() => setSwitcherVisible(true)}
+          style={styles.menuBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="menu" size={22} color={colors.onSurface} />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
           <Text style={styles.headerLabel}>ESPACE VENDEUR</Text>
-          <Text style={styles.headerTitle}>Tableau de bord</Text>
+          <Text style={styles.headerTitle}>
+            {selectedShopName ?? "Toutes mes boutiques"}
+          </Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <Ionicons name="log-out-outline" size={20} color={colors.onSurfaceVariant} />
+        <TouchableOpacity onPress={() => setSwitcherVisible(true)} style={styles.shopBtn}>
+          <Ionicons name="storefront-outline" size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -246,7 +259,15 @@ export default function VendeurDashboard() {
         )}
       />
 
-      <BottomNav />
+      <ShopSwitcher
+        visible={switcherVisible}
+        shops={shops}
+        selectedShopId={selectedShopId}
+        onSelect={(shop) => setSelectedShopId(shop.id === 0 ? null : shop.id)}
+        onClose={() => setSwitcherVisible(false)}
+      />
+
+      <SellerBottomNav />
     </SafeAreaView>
   );
 }
@@ -255,14 +276,16 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
+    gap: 12,
   },
+  menuBtn: { padding: 4 },
+  headerCenter: { flex: 1 },
   headerLabel: { fontSize: 10, fontWeight: "600", color: colors.primary, letterSpacing: 1.5 },
-  headerTitle: { fontSize: 24, fontWeight: "700", color: colors.onSurface, marginTop: 2 },
-  logoutBtn: { padding: 8 },
+  headerTitle: { fontSize: 20, fontWeight: "700", color: colors.onSurface, marginTop: 2 },
+  shopBtn: { padding: 8 },
 
   /* Stats */
   statsGrid: {
