@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Product, Category } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
@@ -9,10 +9,11 @@ import ProductCard from "@/components/ProductCard";
 
 export default function CatalogScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ category?: string }>();
   const { addToCart, totalCount } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [selectedCat, setSelectedCat] = useState<string | null>(params.category ?? null);
 
   useFocusEffect(
     useCallback(() => {
@@ -29,22 +30,21 @@ export default function CatalogScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
+        </TouchableOpacity>
         <Text style={styles.title}>Boutique</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.cartBtn} onPress={() => router.push("/cart")}>
-            <Ionicons name="bag-outline" size={20} color={colors.onPrimary} />
-            {totalCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{totalCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.cartBtn} onPress={() => router.push("/cart")}>
+          <Ionicons name="bag-outline" size={20} color={colors.onPrimary} />
+          {totalCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{totalCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
-      {/* Categories */}
       <View style={styles.catRow}>
         <TouchableOpacity
           style={[styles.catChip, !selectedCat && styles.catChipActive]}
@@ -63,7 +63,6 @@ export default function CatalogScreen() {
         ))}
       </View>
 
-      {/* Products */}
       <FlatList
         data={filtered}
         keyExtractor={(item) => String(item.id)}
@@ -92,8 +91,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  title: { fontSize: 24, fontWeight: "700", color: colors.onSurface },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+  title: { fontSize: 20, fontWeight: "700", color: colors.onSurface },
   cartBtn: {
     backgroundColor: colors.primary,
     width: 40,
@@ -110,11 +108,11 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: colors.error,
+    backgroundColor: colors.roseDark,
     justifyContent: "center",
     alignItems: "center",
   },
-  badgeText: { color: colors.onError, fontSize: 10, fontWeight: "700" },
+  badgeText: { color: colors.onPrimary, fontSize: 10, fontWeight: "700" },
   catRow: {
     flexDirection: "row",
     paddingHorizontal: 16,

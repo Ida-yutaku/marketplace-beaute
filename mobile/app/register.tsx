@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Switch, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, TouchableOpacity } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSequence, withTiming } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "@/lib/api";
@@ -9,7 +9,16 @@ import { showAlert } from "@/lib/alert";
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: "", email: "", password: "", is_seller: true, shop_name: "" });
+  const params = useLocalSearchParams<{ role?: string }>();
+  const isVendeuse = params.role === "vendeuse";
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    is_seller: isVendeuse,
+    shop_name: "",
+  });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const shake = useSharedValue(0);
@@ -48,7 +57,16 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-          <Text style={styles.title}>{form.is_seller ? "Créer un compte vendeur" : "Créer un compte acheteur"}</Text>
+          <View style={styles.logoWrap}>
+            <Text style={styles.logo}>LUMINA</Text>
+          </View>
+          <View style={[styles.roleBadge, { backgroundColor: isVendeuse ? colors.primary : colors.roseLight }]}>
+            <Ionicons name={isVendeuse ? "storefront" : "bag-handle"} size={16} color={isVendeuse ? colors.onPrimary : colors.primary} />
+            <Text style={[styles.roleBadgeText, { color: isVendeuse ? colors.onPrimary : colors.primary }]}>
+              {isVendeuse ? "Compte Vendeuse" : "Compte Acheteuse"}
+            </Text>
+          </View>
+          <Text style={styles.title}>Créez votre compte</Text>
           <Text style={styles.subtitle}>Rejoignez la communauté LUMINA</Text>
         </Animated.View>
 
@@ -74,24 +92,21 @@ export default function RegisterScreen() {
             {form.password.length > 0 && <Text style={styles.hint}>{form.password.length} caractère(s)</Text>}
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(260).duration(400)}>
-            <Text style={styles.label}>Nom de la boutique</Text>
-            <TextInput style={styles.input} placeholder="Mon Salon" placeholderTextColor={colors.outline} value={form.shop_name} onChangeText={(v) => setForm({ ...form, shop_name: v })} />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(320).duration(400)} style={styles.switchRow}>
-            <Text style={styles.switchLabel}>Compte vendeur</Text>
-            <Switch value={form.is_seller} onValueChange={(v) => setForm({ ...form, is_seller: v })} trackColor={{ true: colors.primaryContainer, false: colors.outlineVariant }} thumbColor={form.is_seller ? colors.primary : colors.surfaceDim} />
-          </Animated.View>
+          {form.is_seller && (
+            <Animated.View entering={FadeInDown.delay(260).duration(400)}>
+              <Text style={styles.label}>Nom de la boutique</Text>
+              <TextInput style={styles.input} placeholder="Mon Salon" placeholderTextColor={colors.outline} value={form.shop_name} onChangeText={(v) => setForm({ ...form, shop_name: v })} />
+            </Animated.View>
+          )}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(380).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(320).duration(400)}>
           <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading} activeOpacity={0.85}>
             <Text style={styles.buttonText}>{loading ? "Création..." : "S'inscrire"}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push("/login")} style={styles.linkBtn}>
-            <Text style={styles.link}>Déjà un compte ? Se connecter</Text>
+            <Text style={styles.link}>Déjà un compte ? <Text style={styles.linkBold}>Se connecter</Text></Text>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
@@ -100,20 +115,32 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.roseBg },
   content: { padding: 20, gap: 6, paddingBottom: 60 },
   back: { position: "absolute", top: 50, left: 20, zIndex: 1 },
-  header: { marginBottom: 20, marginTop: 20 },
-  title: { fontSize: 26, fontWeight: "700", color: colors.onSurface },
-  subtitle: { fontSize: 14, color: colors.outline, marginTop: 4 },
+  header: { marginBottom: 20, marginTop: 20, alignItems: "center" },
+  logoWrap: { marginBottom: 12 },
+  logo: { fontSize: 28, fontWeight: "700", color: colors.primary, letterSpacing: 6 },
+  roleBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 12,
+  },
+  roleBadgeText: { fontSize: 12, fontWeight: "600" },
+  title: { fontSize: 24, fontWeight: "700", color: colors.onSurface, textAlign: "center" },
+  subtitle: { fontSize: 14, color: colors.outline, marginTop: 4, textAlign: "center" },
   label: { fontSize: 12, fontWeight: "600", color: colors.onSurfaceVariant, marginBottom: 6, marginLeft: 2 },
   input: {
-    backgroundColor: colors.surfaceContainerLow,
+    backgroundColor: colors.surfaceContainerLowest,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
+    borderColor: colors.rose,
     fontSize: 15,
     color: colors.onSurface,
     marginBottom: 4,
@@ -129,22 +156,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 8,
   },
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    marginTop: 4,
-  },
-  switchLabel: { color: colors.onSurface, fontSize: 14, fontWeight: "500" },
   button: {
     backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 999,
     alignItems: "center",
     marginTop: 8,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   buttonText: { color: colors.onPrimary, fontWeight: "700", fontSize: 15 },
   linkBtn: { marginTop: 16, alignItems: "center", marginBottom: 20 },
-  link: { color: colors.primary, fontWeight: "600", fontSize: 14 },
+  link: { color: colors.outline, fontWeight: "500", fontSize: 14 },
+  linkBold: { color: colors.primary, fontWeight: "700" },
 });

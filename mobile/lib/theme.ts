@@ -9,7 +9,7 @@ export const FONTS = {
 
 export const colors = {
   primary: "#8a4853",
-  primaryContainer: "#a6606b",
+  primaryContainer: "#c98693",
   onPrimary: "#ffffff",
   onPrimaryContainer: "#fffbff",
   inversePrimary: "#ffb2bc",
@@ -45,4 +45,9 @@ export const colors = {
   onErrorContainer: "#93000a",
 
   success: "#16a34a",
+
+  rose: "#f4c2c2",
+  roseLight: "#fce4e8",
+  roseDark: "#d4868f",
+  roseBg: "#fdf0f2",
 };
