@@ -1,31 +1,58 @@
 import { useCallback, useState } from "react";
-import { View, Text, FlatList, StyleSheet, RefreshControl, Image, TouchableOpacity, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import Animated, { FadeIn, FadeInDown, Layout } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Product } from "@/lib/api";
+import { api, Order, Product, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert, confirmAlert } from "@/lib/alert";
+import BottomNav from "@/components/BottomNav";
+
+type FilterKey = "all" | "active" | "out";
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "Tous" },
+  { key: "active", label: "En vente" },
+  { key: "out", label: "Rupture" },
+];
 
 export default function VendeurDashboard() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filter, setFilter] = useState<FilterKey>("all");
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadProducts = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
-      const data = await api.getProducts({ mine: true });
-      setProducts(Array.isArray(data) ? data : data.results ?? []);
+      const [p, s, o] = await Promise.all([
+        api.getProducts({ mine: true }),
+        api.getMyShops(),
+        api.getSellerOrders(),
+      ]);
+      setProducts(Array.isArray(p) ? p : p.results ?? []);
+      setShops(Array.isArray(s) ? s : s.results ?? []);
+      setOrders(Array.isArray(o) ? o : []);
     } catch {
-      showAlert("Erreur", "Impossible de charger tes annonces.");
+      showAlert("Erreur", "Impossible de charger les données.");
     }
   }, []);
 
-  useFocusEffect(useCallback(() => { loadProducts(); }, [loadProducts]));
+  useFocusEffect(useCallback(() => { load(); }, [load]));
 
   async function onRefresh() {
     setRefreshing(true);
-    await loadProducts();
+    await load();
     setRefreshing(false);
   }
 
@@ -47,13 +74,54 @@ export default function VendeurDashboard() {
     });
   }
 
+  const filtered = products.filter((p) => {
+    if (filter === "active") return p.is_available && p.stock > 0;
+    if (filter === "out") return p.stock <= 0;
+    return true;
+  });
+
+  const totalRevenue = orders
+    .filter((o) => o.status === "paid")
+    .reduce((sum, o) => sum + Number(o.total_amount), 0);
+
+  const stats = [
+    {
+      icon: "cube-outline" as const,
+      label: "Produits",
+      value: products.length,
+      bg: colors.roseBg,
+      iconColor: colors.primary,
+    },
+    {
+      icon: "storefront-outline" as const,
+      label: "Boutiques",
+      value: shops.length,
+      bg: colors.secondaryContainer,
+      iconColor: colors.secondary,
+    },
+    {
+      icon: "receipt-outline" as const,
+      label: "Commandes",
+      value: orders.length,
+      bg: colors.tertiaryContainer,
+      iconColor: colors.tertiary,
+    },
+    {
+      icon: "cash-outline" as const,
+      label: "Revenu",
+      value: `${totalRevenue.toLocaleString("fr-FR")} €`,
+      bg: colors.errorContainer,
+      iconColor: colors.error,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.safe}>
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.headerLabel}>ESPACE VENDEUR</Text>
-          <Text style={styles.headerTitle}>Mes Annonces</Text>
+          <Text style={styles.headerTitle}>Tableau de bord</Text>
         </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <Ionicons name="log-out-outline" size={20} color={colors.onSurfaceVariant} />
@@ -61,21 +129,66 @@ export default function VendeurDashboard() {
       </View>
 
       <FlatList
-        data={products}
+        data={filtered}
         keyExtractor={(item) => String(item.id)}
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+        ListHeaderComponent={
+          <>
+            {/* Stats cards */}
+            <Animated.View entering={FadeInDown.delay(60)} style={styles.statsGrid}>
+              {stats.map((s) => (
+                <View key={s.label} style={[styles.statCard, { backgroundColor: s.bg }]}>
+                  <Ionicons name={s.icon} size={20} color={s.iconColor} />
+                  <Text style={styles.statValue}>{s.value}</Text>
+                  <Text style={styles.statLabel}>{s.label}</Text>
+                </View>
+              ))}
+            </Animated.View>
+
+            {/* Section header */}
+            <Animated.View entering={FadeInDown.delay(120)} style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>Mes Produits</Text>
+              <TouchableOpacity
+                style={styles.addBtn}
+                onPress={() => router.push("/vendeur/nouveau")}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add" size={16} color={colors.onPrimary} />
+                <Text style={styles.addBtnText}>Nouveau</Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Filter chips */}
+            <Animated.View entering={FadeInDown.delay(160)} style={styles.chipRow}>
+              {FILTERS.map((f) => (
+                <TouchableOpacity
+                  key={f.key}
+                  style={[styles.chip, filter === f.key && styles.chipActive]}
+                  onPress={() => setFilter(f.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.chipText, filter === f.key && styles.chipTextActive]}>
+                    {f.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </Animated.View>
+          </>
+        }
         ListEmptyComponent={
           <Animated.View entering={FadeIn.delay(200)} style={styles.empty}>
             <Ionicons name="bag-handle-outline" size={40} color={colors.outlineVariant} />
-            <Text style={styles.emptyText}>Aucune annonce</Text>
+            <Text style={styles.emptyText}>Aucun produit</Text>
           </Animated.View>
         }
         renderItem={({ item, index }) => (
           <Animated.View
-            entering={FadeInDown.delay(index * 60).springify().damping(16)}
+            entering={FadeInDown.delay(index * 50).springify().damping(16)}
             layout={Layout.springify()}
             style={styles.card}
           >
@@ -88,19 +201,42 @@ export default function VendeurDashboard() {
                     <Text style={{ fontSize: 28 }}>💄</Text>
                   </View>
                 )}
-                <View style={[styles.statusBadge, { backgroundColor: item.is_available ? colors.success : colors.outline }]}>
-                  <Text style={styles.statusText}>{item.is_available ? "En vente" : "Off"}</Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: item.is_available && item.stock > 0 ? colors.success : colors.errorContainer },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: item.is_available && item.stock > 0 ? "#fff" : colors.error },
+                    ]}
+                  >
+                    {item.is_available && item.stock > 0 ? "En vente" : "Rupture"}
+                  </Text>
                 </View>
               </View>
               <View style={styles.cardBody}>
-                <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
                 <Text style={styles.cardPrice}>{item.price} €</Text>
-                <Text style={styles.cardShop}>{item.shop_name}</Text>
+                <Text style={styles.cardShop} numberOfLines={1}>
+                  {item.shop_name}
+                </Text>
                 <View style={styles.cardActions}>
-                  <TouchableOpacity style={styles.editBtn} onPress={() => router.push(`/vendeur/${item.id}`)}>
+                  <TouchableOpacity
+                    style={styles.editBtn}
+                    onPress={() => router.push(`/vendeur/${item.id}`)}
+                  >
+                    <Ionicons name="pencil-outline" size={12} color={colors.primary} />
                     <Text style={styles.editBtnText}>Modifier</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item.id, item.title)}>
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => handleDelete(item.id, item.title)}
+                  >
                     <Ionicons name="trash-outline" size={14} color={colors.error} />
                   </TouchableOpacity>
                 </View>
@@ -110,12 +246,7 @@ export default function VendeurDashboard() {
         )}
       />
 
-      <View style={styles.fabWrap}>
-        <TouchableOpacity style={styles.fab} onPress={() => router.push("/vendeur/nouveau")} activeOpacity={0.85}>
-          <Ionicons name="add" size={22} color={colors.onPrimary} />
-          <Text style={styles.fabText}>Nouvelle annonce</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav />
     </SafeAreaView>
   );
 }
@@ -132,7 +263,67 @@ const styles = StyleSheet.create({
   headerLabel: { fontSize: 10, fontWeight: "600", color: colors.primary, letterSpacing: 1.5 },
   headerTitle: { fontSize: 24, fontWeight: "700", color: colors.onSurface, marginTop: 2 },
   logoutBtn: { padding: 8 },
-  list: { padding: 16, paddingBottom: 100, gap: 12 },
+
+  /* Stats */
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    paddingHorizontal: 16,
+    marginBottom: 4,
+  },
+  statCard: {
+    width: "47%",
+    flexGrow: 1,
+    borderRadius: 14,
+    padding: 14,
+    gap: 4,
+  },
+  statValue: { fontSize: 20, fontWeight: "700", color: colors.onSurface },
+  statLabel: { fontSize: 12, color: colors.onSurfaceVariant, fontWeight: "500" },
+
+  /* Section */
+  sectionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: colors.onSurface },
+  addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  addBtnText: { color: colors.onPrimary, fontSize: 13, fontWeight: "600" },
+
+  /* Chips */
+  chipRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceContainerLow,
+    borderWidth: 1,
+    borderColor: colors.outlineVariant,
+  },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { fontSize: 13, color: colors.onSurfaceVariant, fontWeight: "500" },
+  chipTextActive: { color: colors.onPrimary },
+
+  /* Product grid */
+  list: { paddingBottom: 100 },
   card: {
     flex: 1,
     backgroundColor: colors.surfaceContainerLowest,
@@ -159,13 +350,16 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
   },
-  statusText: { color: "#fff", fontSize: 10, fontWeight: "700" },
+  statusText: { fontSize: 10, fontWeight: "700" },
   cardBody: { padding: 10 },
   cardTitle: { fontWeight: "600", fontSize: 13, color: colors.onSurface },
   cardPrice: { color: colors.primary, fontWeight: "700", fontSize: 14, marginTop: 2 },
   cardShop: { color: colors.outline, fontSize: 11, marginTop: 2 },
   cardActions: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
   editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     backgroundColor: colors.surfaceContainerHigh,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -182,20 +376,4 @@ const styles = StyleSheet.create({
   },
   empty: { alignItems: "center", marginTop: 60, gap: 8 },
   emptyText: { fontWeight: "600", fontSize: 15, color: colors.onSurfaceVariant },
-  fabWrap: { position: "absolute", bottom: 20, left: 16, right: 16 },
-  fab: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 14,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  fabText: { color: colors.onPrimary, fontWeight: "700", fontSize: 15 },
 });

@@ -127,6 +127,21 @@ export type Me = {
   phone: string;
 };
 
+export type OrderItem = {
+  id: number;
+  product: Product;
+  quantity: number;
+  unit_price: string;
+};
+
+export type Order = {
+  id: number;
+  status: "pending" | "paid" | "canceled";
+  total_amount: string;
+  items: OrderItem[];
+  created_at: string;
+};
+
 export const api = {
   login: async (email: string, password: string) => {
     const data = await apiFetch<{ access: string; refresh: string }>(
@@ -221,7 +236,9 @@ export const api = {
     return apiFetchFormData<Product>(`/products/${id}/`, formData, "PATCH");
   },
 
-  myOrders: () => apiFetch("/orders/mine/"),
+  myOrders: () => apiFetch<Order[]>("/orders/mine/"),
+
+  getSellerOrders: () => apiFetch<Order[]>("/orders/seller/"),
 
   checkout: (items: { product_id: number; quantity: number }[]) =>
     apiFetch<{ checkout_url: string; order_id: number }>("/orders/checkout/", {

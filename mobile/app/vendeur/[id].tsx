@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Category, Product } from "@/lib/api";
 import { colors } from "@/lib/theme";
+import { showAlert } from "@/lib/alert";
 
 export default function EditProductScreen() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function EditProductScreen() {
 
   async function handleSubmit() {
     if (!form.title || !form.description || !form.price || !form.category_id) {
-      alert("Titre, description, prix et catégorie sont obligatoires.");
+      showAlert("Champs manquants", "Titre, description, prix et catégorie sont obligatoires.");
       return;
     }
     setSaving(true);
@@ -51,10 +52,10 @@ export default function EditProductScreen() {
         category_id: Number(form.category_id),
       });
       if (newImageUri) await api.uploadProductImage(productId, newImageUri);
-      alert("Modifications enregistrées");
+      showAlert("Succès", "Modifications enregistrées");
       router.replace("/vendeur");
     } catch {
-      alert("Erreur lors de la modification.");
+      showAlert("Erreur", "La modification a échoué.");
     } finally {
       setSaving(false);
     }

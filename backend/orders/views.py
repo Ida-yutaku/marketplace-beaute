@@ -28,6 +28,25 @@ class MyOrdersView(APIView):
         return Response(OrderSerializer(orders, many=True).data)
 
 
+class SellerOrdersView(APIView):
+    """GET /api/orders/seller/ — commandes contenant les produits du vendeur connecté."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from catalog.models import Product
+        from shops.models import Shop
+
+        seller_shop_ids = Shop.objects.filter(owner=request.user).values_list("id", flat=True)
+        orders = (
+            Order.objects
+            .filter(items__product__shop_id__in=seller_shop_ids)
+            .distinct()
+            .order_by("-created_at")
+        )
+        return Response(OrderSerializer(orders, many=True).data)
+
+
 class CheckoutView(APIView):
     """
     POST /api/orders/checkout/

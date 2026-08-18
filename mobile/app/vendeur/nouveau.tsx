@@ -7,7 +7,7 @@ import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Category, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
-import { showAlert } from "@/lib/alert";
+import { showAlert, confirmAlert } from "@/lib/alert";
 
 export default function NewProductScreen() {
   const router = useRouter();
