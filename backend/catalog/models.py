@@ -21,7 +21,7 @@ class Product(models.Model):
         Category, on_delete=models.SET_NULL, null=True, related_name="products"
     )
     title = models.CharField(max_length=150)
-    description = models.TextField(blank=True)
+    description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
     stock = models.PositiveIntegerField(default=1)
     image = models.ImageField(upload_to="products/", blank=True, null=True)

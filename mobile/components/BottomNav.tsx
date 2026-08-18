@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "@/lib/api";
 import { colors } from "@/lib/theme";
 
 type Tab = {
@@ -9,33 +10,48 @@ type Tab = {
   icon: keyof typeof Ionicons.glyphMap;
   iconActive: keyof typeof Ionicons.glyphMap;
   path: string;
+  sellerPath?: string;
 };
 
 const TABS: Tab[] = [
   { name: "Accueil", icon: "home-outline", iconActive: "home", path: "/home" },
   { name: "Boutique", icon: "storefront-outline", iconActive: "storefront", path: "/catalog" },
   { name: "Panier", icon: "bag-outline", iconActive: "bag", path: "/cart" },
-  { name: "Profil", icon: "person-outline", iconActive: "person", path: "/vendeur" },
+  { name: "Profil", icon: "person-outline", iconActive: "person", path: "/profile", sellerPath: "/vendeur" },
 ];
 
 export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isSeller, setIsSeller] = useState<boolean | null>(null);
 
-  function isActive(tabPath: string) {
+  useEffect(() => {
+    api.me().then((me) => setIsSeller(me.is_seller)).catch(() => setIsSeller(false));
+  }, []);
+
+  function getTabPath(tab: Tab): string {
+    if (tab.sellerPath && isSeller) return tab.sellerPath;
+    return tab.path;
+  }
+
+  function isActive(tab: Tab): boolean {
+    const tabPath = getTabPath(tab);
     return pathname === tabPath || pathname.startsWith(tabPath + "/");
   }
+
+  if (isSeller === null) return null;
 
   return (
     <View style={styles.container}>
       {TABS.map((tab) => {
-        const active = isActive(tab.path);
+        const active = isActive(tab);
+        const tabPath = getTabPath(tab);
         return (
           <TouchableOpacity
             key={tab.name}
             style={styles.tab}
             activeOpacity={0.7}
-            onPress={() => router.push(tab.path as any)}
+            onPress={() => router.push(tabPath as any)}
           >
             <Ionicons
               name={active ? tab.iconActive : tab.icon}

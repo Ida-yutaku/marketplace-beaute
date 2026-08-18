@@ -33,8 +33,8 @@ export default function NewProductScreen() {
   }
 
   async function handleSubmit() {
-    if (!form.title || !form.price || !form.category_id || !form.shop_id) {
-      showAlert("Champs manquants", "Titre, prix, catégorie et boutique sont obligatoires.");
+    if (!form.title || !form.description || !form.price || !form.category_id || !form.shop_id) {
+      showAlert("Champs manquants", "Titre, description, prix, catégorie et boutique sont obligatoires.");
       return;
     }
     setLoading(true);

@@ -39,6 +39,10 @@ export default function EditProductScreen() {
   }
 
   async function handleSubmit() {
+    if (!form.title || !form.description || !form.price || !form.category_id) {
+      alert("Titre, description, prix et catégorie sont obligatoires.");
+      return;
+    }
     setSaving(true);
     try {
       await api.updateProduct(productId, {
