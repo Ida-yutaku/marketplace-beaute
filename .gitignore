@@ -2,3 +2,5 @@ node_modules/.expo
 mobile/node_modules/
 mobile/.expo/
 mobile/mobile/
+__pycache__/
+*.pyc
