@@ -145,6 +145,7 @@ export type Order = {
   status: "pending" | "paid" | "canceled";
   total_amount: string;
   items: OrderItem[];
+  buyer?: { id: number; username: string; email: string };
   created_at: string;
 };
 

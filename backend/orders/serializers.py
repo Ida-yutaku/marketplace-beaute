@@ -5,6 +5,12 @@ from catalog.serializers import ProductSerializer
 from .models import Order, OrderItem
 
 
+class BuyerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    email = serializers.EmailField()
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
 
@@ -15,10 +21,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    buyer = BuyerSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = ["id", "status", "total_amount", "items", "created_at"]
+        fields = ["id", "status", "total_amount", "items", "buyer", "created_at"]
 
 
 class CheckoutItemInput(serializers.Serializer):

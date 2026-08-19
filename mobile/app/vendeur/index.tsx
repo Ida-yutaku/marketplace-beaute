@@ -12,7 +12,7 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import Animated, { FadeIn, FadeInDown, Layout } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Order, Product, Shop } from "@/lib/api";
+import { api, Order, Product, Shop, formatFCFA } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert, confirmAlert } from "@/lib/alert";
 import SellerBottomNav from "@/components/SellerBottomNav";
@@ -107,13 +107,14 @@ export default function VendeurDashboard() {
       icon: "receipt-outline" as const,
       label: "Commandes",
       value: orders.length,
-      bg: colors.tertiaryContainer,
-      iconColor: colors.tertiary,
+      bg: colors.surfaceContainerLow,
+      iconColor: colors.primary,
+      onPress: () => router.push("/vendeur/commandes"),
     },
     {
       icon: "cash-outline" as const,
       label: "Revenu",
-      value: `${totalRevenue.toLocaleString("fr-FR")} €`,
+      value: formatFCFA(totalRevenue),
       bg: colors.errorContainer,
       iconColor: colors.error,
     },
@@ -155,11 +156,17 @@ export default function VendeurDashboard() {
             {/* Stats cards */}
             <Animated.View entering={FadeInDown.delay(60)} style={styles.statsGrid}>
               {stats.map((s) => (
-                <View key={s.label} style={[styles.statCard, { backgroundColor: s.bg }]}>
+                <TouchableOpacity
+                  key={s.label}
+                  style={[styles.statCard, { backgroundColor: s.bg }]}
+                  activeOpacity={s.onPress ? 0.7 : 1}
+                  onPress={s.onPress}
+                  disabled={!s.onPress}
+                >
                   <Ionicons name={s.icon} size={20} color={s.iconColor} />
                   <Text style={styles.statValue}>{s.value}</Text>
                   <Text style={styles.statLabel}>{s.label}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </Animated.View>
 
@@ -211,7 +218,7 @@ export default function VendeurDashboard() {
                   <Image source={{ uri: item.image }} style={styles.image} />
                 ) : (
                   <View style={styles.imagePlaceholder}>
-                    <Text style={{ fontSize: 28 }}>💄</Text>
+                    <Ionicons name="camera-outline" size={28} color={colors.outlineVariant} />
                   </View>
                 )}
                 <View
@@ -234,7 +241,7 @@ export default function VendeurDashboard() {
                 <Text style={styles.cardTitle} numberOfLines={1}>
                   {item.title}
                 </Text>
-                <Text style={styles.cardPrice}>{item.price} €</Text>
+                <Text style={styles.cardPrice}>{formatFCFA(item.price)}</Text>
                 <Text style={styles.cardShop} numberOfLines={1}>
                   {item.shop_name}
                 </Text>
@@ -356,11 +363,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.outlineVariant,
   },
-  imageWrap: { position: "relative" },
-  image: { width: "100%", height: 110 },
+  imageWrap: { position: "relative", aspectRatio: 4 / 3 },
+  image: { width: "100%", height: "100%", resizeMode: "cover" },
   imagePlaceholder: {
     width: "100%",
-    height: 110,
+    height: "100%",
     backgroundColor: colors.surfaceContainerLow,
     justifyContent: "center",
     alignItems: "center",

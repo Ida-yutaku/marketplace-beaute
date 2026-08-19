@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "@/contexts/CartContext";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, formatFCFA } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import BottomNav from "@/components/BottomNav";
 
@@ -52,7 +52,7 @@ export default function CartScreen() {
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Text style={styles.itemTitle} numberOfLines={1}>{item.title || item.name}</Text>
-              <Text style={styles.itemPrice}>{item.price} €</Text>
+              <Text style={styles.itemPrice}>{formatFCFA(item.price)}</Text>
             </View>
             <View style={styles.qtyRow}>
               <TouchableOpacity onPress={() => decreaseQuantity(item.id)} style={styles.qtyBtn}>
@@ -74,7 +74,7 @@ export default function CartScreen() {
         <View style={styles.footer}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalPrice}>{totalPrice} €</Text>
+            <Text style={styles.totalPrice}>{formatFCFA(totalPrice)}</Text>
           </View>
           <TouchableOpacity style={styles.payBtn} onPress={handleCheckout} disabled={loading} activeOpacity={0.85}>
             <Text style={styles.payBtnText}>{loading ? "Redirection..." : "Payer"}</Text>
