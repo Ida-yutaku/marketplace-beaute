@@ -214,8 +214,8 @@ export default function VendeurDashboard() {
           >
             <TouchableOpacity activeOpacity={0.8} onPress={() => router.push(`/vendeur/${item.id}`)}>
               <View style={styles.imageWrap}>
-                {item.image ? (
-                  <Image source={{ uri: item.image }} style={styles.image} />
+                {item.image_url || item.image ? (
+                  <Image source={{ uri: item.image_url ?? item.image! }} style={styles.image} />
                 ) : (
                   <View style={styles.imagePlaceholder}>
                     <Ionicons name="camera-outline" size={28} color={colors.outlineVariant} />

@@ -1,10 +1,14 @@
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Category, Product
 from .permissions import IsOwnerOrReadOnly
 from .serializers import CategorySerializer, ProductSerializer
+
+# Absolute base URL for media — used by serializer when request context is missing
+API_HOST = getattr(settings, "API_HOST", "https://marketplace-beaute-api.onrender.com")
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):

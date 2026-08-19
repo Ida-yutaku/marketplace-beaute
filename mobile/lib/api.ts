@@ -113,7 +113,9 @@ export type Product = {
   price: string;
   stock: number;
   image: string | null;
+  image_url: string | null;
   video: string | null;
+  video_url: string | null;
   is_available: boolean;
   category: Category | null;
   shop_name: string;

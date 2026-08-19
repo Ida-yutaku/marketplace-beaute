@@ -16,3 +16,17 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    from django.views.static import serve as static_serve
+    import os
+
+    def media_view(request, path, **kwargs):
+        file_path = os.path.join(settings.MEDIA_ROOT, path)
+        if os.path.isfile(file_path):
+            return static_serve(request, path, document_root=settings.MEDIA_ROOT)
+        from django.http import Http404
+        raise Http404
+
+    urlpatterns += [
+        path("media/<path:path>", media_view),
+    ]

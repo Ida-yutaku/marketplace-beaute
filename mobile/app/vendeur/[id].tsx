@@ -29,7 +29,7 @@ export default function EditProductScreen() {
         title: p.title, description: p.description, price: p.price,
         stock: String(p.stock), category_id: p.category ? String(p.category.id) : "",
       });
-      setCurrentImage(p.image);
+      setCurrentImage(p.image_url ?? p.image);
       setCurrentVideo(p.video ?? null);
       setLoading(false);
     });

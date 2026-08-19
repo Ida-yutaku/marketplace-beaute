@@ -34,7 +34,7 @@ export default function CatalogScreen() {
   function toProductItem(p: Product): ProductItem {
     return {
       id: p.id, title: p.title, price: p.price,
-      image: p.image ?? undefined,
+      image: p.image_url ?? p.image ?? undefined,
       description: p.description, stock: p.stock, is_available: p.is_available,
     };
   }

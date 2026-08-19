@@ -112,6 +112,7 @@ STORAGES = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+API_HOST = os.getenv("API_HOST", "https://marketplace-beaute-api.onrender.com")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
