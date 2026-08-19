@@ -49,24 +49,26 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_active", "is_available", "category", "category_id",
             "shop", "shop_id", "shop_name", "created_at",
         ]
-        read_only_fields = ["shop", "created_at"]
+        read_only_fields = ["shop", "created_at", "image", "video"]
 
     def get_image_url(self, obj):
         request = self.context.get("request")
-        if obj.image:
-            try:
-                return _absolute_url(request, obj.image.url)
-            except Exception:
-                return _absolute_url(request, obj.image.name)
+        try:
+            if obj.image:
+                url = obj.image.url if hasattr(obj.image, 'url') else str(obj.image)
+                return _absolute_url(request, url)
+        except Exception:
+            pass
         return None
 
     def get_video_url(self, obj):
         request = self.context.get("request")
-        if obj.video:
-            try:
-                return _absolute_url(request, obj.video.url)
-            except Exception:
-                return _absolute_url(request, obj.video.name)
+        try:
+            if obj.video:
+                url = obj.video.url if hasattr(obj.video, 'url') else str(obj.video)
+                return _absolute_url(request, url)
+        except Exception:
+            pass
         return None
 
     def validate_shop_id(self, shop):
