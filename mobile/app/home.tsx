@@ -4,8 +4,9 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Product, Category } from "@/lib/api";
 import { colors } from "@/lib/theme";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, ProductItem } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
+import ProductDetailSheet from "@/components/ProductDetailSheet";
 import BottomNav from "@/components/BottomNav";
 
 const CATEGORIES = [
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const { addToCart, totalCount } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [detailProduct, setDetailProduct] = useState<ProductItem | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,10 +37,17 @@ export default function HomeScreen() {
     router.push({ pathname: "/catalog", params: cat ? { category: cat.slug } : {} });
   }
 
+  function toProductItem(p: Product): ProductItem {
+    return {
+      id: p.id, title: p.title, price: p.price,
+      image: p.image ?? undefined,
+      description: p.description, stock: p.stock, is_available: p.is_available,
+    };
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={{ width: 40 }} />
           <Text style={styles.logo}>LUMINA</Text>
@@ -54,7 +63,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
@@ -66,7 +74,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Categories */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Explorer</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesRow}>
@@ -81,7 +88,6 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Trending */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Tendances</Text>
@@ -93,9 +99,10 @@ export default function HomeScreen() {
             {products.slice(0, 4).map((item, index) => (
               <ProductCard
                 key={item.id}
-                product={{ id: item.id, title: item.title, price: item.price, image: item.image ?? undefined }}
+                product={toProductItem(item)}
                 index={index}
                 onAdd={addToCart}
+                onSeeMore={() => setDetailProduct(toProductItem(item))}
               />
             ))}
           </View>
@@ -104,7 +111,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* CTA Vendeuse */}
         <View style={styles.ctaSection}>
           <View style={styles.ctaCard}>
             <Text style={styles.ctaTitle}>Vous êtes vendeuse ?</Text>
@@ -117,6 +123,7 @@ export default function HomeScreen() {
 
         <View style={{ height: 20 }} />
       </ScrollView>
+      <ProductDetailSheet visible={!!detailProduct} product={detailProduct} onClose={() => setDetailProduct(null)} />
       <BottomNav />
     </SafeAreaView>
   );

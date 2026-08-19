@@ -17,6 +17,8 @@ export default function EditProductScreen() {
   const [form, setForm] = useState({ title: "", description: "", price: "", stock: "", category_id: "" });
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<string | null>(null);
+  const [newVideoUri, setNewVideoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -28,6 +30,7 @@ export default function EditProductScreen() {
         stock: String(p.stock), category_id: p.category ? String(p.category.id) : "",
       });
       setCurrentImage(p.image);
+      setCurrentVideo(p.video ?? null);
       setLoading(false);
     });
   }, [productId]);
@@ -37,6 +40,13 @@ export default function EditProductScreen() {
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
     if (!result.canceled) setNewImageUri(result.assets[0].uri);
+  }
+
+  async function pickVideo() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Videos, quality: 0.7 });
+    if (!result.canceled) setNewVideoUri(result.assets[0].uri);
   }
 
   async function handleSubmit() {
@@ -52,6 +62,7 @@ export default function EditProductScreen() {
         category_id: Number(form.category_id),
       });
       if (newImageUri) await api.uploadProductImage(productId, newImageUri);
+      if (newVideoUri) await api.uploadProductVideo(productId, newVideoUri);
       showAlert("Succès", "Modifications enregistrées");
       router.replace("/vendeur");
     } catch {
@@ -80,6 +91,7 @@ export default function EditProductScreen() {
       </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={styles.label}>Photo</Text>
         <TouchableOpacity style={styles.imagePicker} onPress={pickImage} activeOpacity={0.8}>
           {newImageUri || currentImage ? (
             <Image source={{ uri: newImageUri || currentImage! }} style={styles.imagePreview} />
@@ -87,6 +99,24 @@ export default function EditProductScreen() {
             <View style={styles.imagePlaceholder}>
               <Ionicons name="camera-outline" size={32} color={colors.outline} />
               <Text style={styles.imagePickerText}>Ajouter une photo</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.label}>Vidéo (optionnel)</Text>
+        <TouchableOpacity style={styles.imagePicker} onPress={pickVideo} activeOpacity={0.8}>
+          {newVideoUri || currentVideo ? (
+            <View style={styles.videoPreview}>
+              <Ionicons name="videocam" size={24} color={colors.primary} />
+              <Text style={styles.videoPreviewText}>{newVideoUri ? "Nouvelle vidéo sélectionnée" : "Vidéo actuelle"}</Text>
+              <TouchableOpacity onPress={() => { setNewVideoUri(null); setCurrentVideo(null); }}>
+                <Ionicons name="close-circle" size={20} color={colors.error} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="videocam-outline" size={32} color={colors.outline} />
+              <Text style={styles.imagePickerText}>Ajouter une vidéo</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -99,8 +129,8 @@ export default function EditProductScreen() {
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Prix (€)</Text>
-            <TextInput style={styles.input} placeholder="0.00" placeholderTextColor={colors.outline} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
+            <Text style={styles.label}>Prix (FCFA)</Text>
+            <TextInput style={styles.input} placeholder="0" placeholderTextColor={colors.outline} keyboardType="number-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Stock</Text>
@@ -168,6 +198,8 @@ const styles = StyleSheet.create({
   imagePlaceholder: { flex: 1, justifyContent: "center", alignItems: "center", gap: 6 },
   imagePickerText: { color: colors.outline, fontSize: 13 },
   imagePreview: { width: "100%", height: "100%", resizeMode: "cover" },
+  videoPreview: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  videoPreviewText: { color: colors.primary, fontSize: 13, fontWeight: "600" },
   button: {
     backgroundColor: colors.primary,
     paddingVertical: 16,

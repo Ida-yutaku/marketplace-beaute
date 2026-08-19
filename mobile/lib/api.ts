@@ -113,10 +113,16 @@ export type Product = {
   price: string;
   stock: number;
   image: string | null;
+  video: string | null;
   is_available: boolean;
   category: Category | null;
   shop_name: string;
 };
+
+export function formatFCFA(price: number | string): string {
+  const n = typeof price === "string" ? parseFloat(price) : price;
+  return `${n.toLocaleString("fr-FR")} FCFA`;
+}
 
 export type Me = {
   id: number;
@@ -231,6 +237,24 @@ export const api = {
       const type = match ? `image/${match[1]}` : "image/jpeg";
       // @ts-ignore
       formData.append("image", { uri: imageUri, name: filename, type });
+    }
+
+    return apiFetchFormData<Product>(`/products/${id}/`, formData, "PATCH");
+  },
+
+  uploadProductVideo: async (id: number, videoUri: string) => {
+    const formData = new FormData();
+
+    if (Platform.OS === "web") {
+      const response = await fetch(videoUri);
+      const blob = await response.blob();
+      formData.append("video", blob, "video.mp4");
+    } else {
+      const filename = videoUri.split("/").pop() || "video.mp4";
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `video/${match[1]}` : "video/mp4";
+      // @ts-ignore
+      formData.append("video", { uri: videoUri, name: filename, type });
     }
 
     return apiFetchFormData<Product>(`/products/${id}/`, formData, "PATCH");

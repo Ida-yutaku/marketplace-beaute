@@ -25,6 +25,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     stock = models.PositiveIntegerField(default=1)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
+    video = models.FileField(upload_to="products/videos/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

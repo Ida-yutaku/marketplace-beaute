@@ -7,7 +7,7 @@ import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Category, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
-import { showAlert, confirmAlert } from "@/lib/alert";
+import { showAlert } from "@/lib/alert";
 
 export default function NewProductScreen() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function NewProductScreen() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [form, setForm] = useState({ title: "", description: "", price: "", stock: "1", category_id: "", shop_id: "" });
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [videoUri, setVideoUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,9 +33,23 @@ export default function NewProductScreen() {
     if (!result.canceled) setImageUri(result.assets[0].uri);
   }
 
+  async function pickVideo() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showAlert("Permission refusée", "Autorise l'accès à tes fichiers.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Videos, quality: 0.7 });
+    if (!result.canceled) setVideoUri(result.assets[0].uri);
+  }
+
   async function handleSubmit() {
     if (!form.title || !form.description || !form.price || !form.category_id || !form.shop_id) {
       showAlert("Champs manquants", "Titre, description, prix, catégorie et boutique sont obligatoires.");
+      return;
+    }
+    if (!imageUri) {
+      showAlert("Photo requise", "Ajoute au moins une photo de ton produit.");
       return;
     }
     setLoading(true);
@@ -43,7 +58,8 @@ export default function NewProductScreen() {
         title: form.title, description: form.description, price: form.price,
         stock: Number(form.stock), category_id: Number(form.category_id), shop_id: Number(form.shop_id),
       });
-      if (imageUri) await api.uploadProductImage(product.id, imageUri);
+      await api.uploadProductImage(product.id, imageUri);
+      if (videoUri) await api.uploadProductVideo(product.id, videoUri);
       showAlert("Annonce publiée", "Ton annonce est en ligne.");
       router.replace("/vendeur");
     } catch {
@@ -72,13 +88,34 @@ export default function NewProductScreen() {
         )}
 
         <Animated.View entering={FadeInDown.delay(100)}>
+          <Text style={styles.label}>Photo *</Text>
           <TouchableOpacity style={styles.imagePicker} onPress={pickImage} activeOpacity={0.8}>
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.imagePreview} />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Ionicons name="camera-outline" size={32} color={colors.outline} />
-                <Text style={styles.imagePickerText}>Ajouter une photo</Text>
+                <Text style={styles.imagePickerText}>Ajouter une photo *</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(130)}>
+          <Text style={styles.label}>Vidéo (optionnel)</Text>
+          <TouchableOpacity style={styles.imagePicker} onPress={pickVideo} activeOpacity={0.8}>
+            {videoUri ? (
+              <View style={styles.videoPreview}>
+                <Ionicons name="videocam" size={24} color={colors.primary} />
+                <Text style={styles.videoPreviewText}>Vidéo sélectionnée</Text>
+                <TouchableOpacity onPress={() => setVideoUri(null)}>
+                  <Ionicons name="close-circle" size={20} color={colors.error} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Ionicons name="videocam-outline" size={32} color={colors.outline} />
+                <Text style={styles.imagePickerText}>Ajouter une vidéo</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -96,8 +133,8 @@ export default function NewProductScreen() {
 
         <Animated.View entering={FadeInDown.delay(240)} style={styles.row}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Prix (€)</Text>
-            <TextInput style={styles.input} placeholder="0.00" placeholderTextColor={colors.outline} keyboardType="decimal-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
+            <Text style={styles.label}>Prix (FCFA)</Text>
+            <TextInput style={styles.input} placeholder="0" placeholderTextColor={colors.outline} keyboardType="number-pad" value={form.price} onChangeText={(v) => setForm({ ...form, price: v })} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Stock</Text>
@@ -187,6 +224,8 @@ const styles = StyleSheet.create({
   imagePlaceholder: { flex: 1, justifyContent: "center", alignItems: "center", gap: 6 },
   imagePickerText: { color: colors.outline, fontSize: 13 },
   imagePreview: { width: "100%", height: "100%", resizeMode: "cover" },
+  videoPreview: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  videoPreviewText: { color: colors.primary, fontSize: 13, fontWeight: "600" },
   button: {
     backgroundColor: colors.primary,
     paddingVertical: 16,

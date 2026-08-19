@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import { useCallback, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Me } from "@/lib/api";
@@ -30,8 +30,7 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Mon Profil</Text>
       </View>
 
-      <View style={styles.content}>
-        {/* Avatar */}
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarWrap}>
           <View style={styles.avatar}>
             <Ionicons name="person" size={40} color={colors.primary} />
@@ -40,7 +39,6 @@ export default function ProfileScreen() {
           <Text style={styles.email}>{user?.email || ""}</Text>
         </View>
 
-        {/* Info Cards */}
         <View style={styles.section}>
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: colors.roseLight }]}>
@@ -73,27 +71,19 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Actions */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.actionRow} onPress={() => router.push("/cart")} activeOpacity={0.7}>
             <Ionicons name="bag-outline" size={20} color={colors.onSurfaceVariant} />
             <Text style={styles.actionText}>Mon panier</Text>
             <Ionicons name="chevron-forward" size={18} color={colors.outline} />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionRow} onPress={() => router.push("/catalog")} activeOpacity={0.7}>
-            <Ionicons name="storefront-outline" size={20} color={colors.onSurfaceVariant} />
-            <Text style={styles.actionText}>Boutique</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.outline} />
-          </TouchableOpacity>
         </View>
 
-        {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.85}>
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
           <Text style={styles.logoutText}>Se déconnecter</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
       <BottomNav />
     </SafeAreaView>
   );
@@ -106,7 +96,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   title: { fontSize: 20, fontWeight: "700", color: colors.onSurface },
-  content: { flex: 1, padding: 16 },
+  container: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   avatarWrap: { alignItems: "center", marginBottom: 32 },
   avatar: {
     width: 80,

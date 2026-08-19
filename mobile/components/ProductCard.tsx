@@ -1,7 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
+import { formatFCFA } from "@/lib/api";
 import { ProductItem } from "@/contexts/CartContext";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -11,12 +13,15 @@ interface ProductCardProps {
   index: number;
   onAdd?: (product: ProductItem) => void;
   onPress?: () => void;
+  onSeeMore?: () => void;
 }
 
-export default function ProductCard({ product, index, onAdd, onPress }: ProductCardProps) {
+export default function ProductCard({ product, index, onAdd, onPress, onSeeMore }: ProductCardProps) {
   const title = product.title || product.name || "Produit";
   const pressScale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }));
+
+  const inStock = product.stock === undefined ? true : product.stock > 0;
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).springify().damping(16)} style={styles.card}>
@@ -32,10 +37,15 @@ export default function ProductCard({ product, index, onAdd, onPress }: ProductC
             <Image source={{ uri: product.image }} style={styles.image} />
           ) : (
             <View style={styles.placeholder}>
-              <Text style={styles.placeholderEmoji}>🧴</Text>
+              <Ionicons name="camera-outline" size={32} color={colors.outlineVariant} />
             </View>
           )}
-          {onAdd && (
+          {!inStock && (
+            <View style={styles.outOfStockBadge}>
+              <Text style={styles.outOfStockText}>Rupture</Text>
+            </View>
+          )}
+          {onAdd && inStock && (
             <TouchableOpacity style={styles.addBtn} onPress={() => onAdd(product)} activeOpacity={0.8}>
               <Text style={styles.addBtnText}>+</Text>
             </TouchableOpacity>
@@ -43,7 +53,13 @@ export default function ProductCard({ product, index, onAdd, onPress }: ProductC
         </View>
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
-          <Text style={styles.price}>{product.price} €</Text>
+          <Text style={styles.price}>{formatFCFA(product.price)}</Text>
+          {onSeeMore && (
+            <TouchableOpacity style={styles.seeMoreBtn} onPress={onSeeMore} activeOpacity={0.7}>
+              <Text style={styles.seeMoreText}>Voir plus</Text>
+              <Ionicons name="chevron-forward" size={12} color={colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
       </AnimatedTouchable>
     </Animated.View>
@@ -63,7 +79,16 @@ const styles = StyleSheet.create({
   },
   image: { width: "100%", height: "100%", resizeMode: "cover" },
   placeholder: { flex: 1, justifyContent: "center", alignItems: "center" },
-  placeholderEmoji: { fontSize: 36 },
+  outOfStockBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: colors.errorContainer,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  outOfStockText: { color: colors.error, fontSize: 10, fontWeight: "700" },
   addBtn: {
     position: "absolute",
     bottom: 8,
@@ -86,12 +111,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: colors.onSurface,
-    fontFamily: undefined,
   },
   price: {
-    fontSize: 14,
-    fontWeight: "400",
-    color: colors.secondary,
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.primary,
     marginTop: 2,
+  },
+  seeMoreBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    marginTop: 4,
+  },
+  seeMoreText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.primary,
   },
 });

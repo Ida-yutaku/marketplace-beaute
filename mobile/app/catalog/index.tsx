@@ -3,9 +3,10 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from
 import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api, Product, Category } from "@/lib/api";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, ProductItem } from "@/contexts/CartContext";
 import { colors } from "@/lib/theme";
 import ProductCard from "@/components/ProductCard";
+import ProductDetailSheet from "@/components/ProductDetailSheet";
 import BottomNav from "@/components/BottomNav";
 
 export default function CatalogScreen() {
@@ -15,6 +16,7 @@ export default function CatalogScreen() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCat, setSelectedCat] = useState<string | null>(params.category ?? null);
+  const [detailProduct, setDetailProduct] = useState<ProductItem | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,6 +30,14 @@ export default function CatalogScreen() {
   const filtered = selectedCat
     ? products.filter((p) => p.category?.slug === selectedCat)
     : products;
+
+  function toProductItem(p: Product): ProductItem {
+    return {
+      id: p.id, title: p.title, price: p.price,
+      image: p.image ?? undefined,
+      description: p.description, stock: p.stock, is_available: p.is_available,
+    };
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -70,12 +80,14 @@ export default function CatalogScreen() {
         ListEmptyComponent={<Text style={styles.empty}>Aucun produit disponible.</Text>}
         renderItem={({ item, index }) => (
           <ProductCard
-            product={{ id: item.id, title: item.title, price: item.price, image: item.image ?? undefined }}
+            product={toProductItem(item)}
             index={index}
             onAdd={addToCart}
+            onSeeMore={() => setDetailProduct(toProductItem(item))}
           />
         )}
       />
+      <ProductDetailSheet visible={!!detailProduct} product={detailProduct} onClose={() => setDetailProduct(null)} />
       <BottomNav />
     </SafeAreaView>
   );
