@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
 import { colors } from "@/lib/theme";
+import { TextAnimate } from "@/components/TextAnimate";
 
 export default function IndexScreen() {
   const router = useRouter();
@@ -24,7 +25,13 @@ export default function IndexScreen() {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>LUMINA</Text>
+          <TextAnimate
+            text="LUMINA"
+            delay={300}
+            stagger={80}
+            duration={600}
+            style={styles.logo}
+          />
         </View>
 
         {/* Hero */}
