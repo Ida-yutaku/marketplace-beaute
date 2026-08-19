@@ -124,7 +124,6 @@ CLOUDINARY_STORAGE = {
 # Si Cloudinary est configuré, l'utiliser pour les médias ; sinon fallback sur FileSystem
 if CLOUDINARY_STORAGE["CLOUD_NAME"]:
     STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"}
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 else:
     STORAGES["default"] = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
 
