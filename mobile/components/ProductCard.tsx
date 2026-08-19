@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { formatFCFA, mediaUrl } from "@/lib/api";
 import { ProductItem } from "@/contexts/CartContext";
+import SparkleEffect from "./SparkleEffect";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -20,8 +21,14 @@ export default function ProductCard({ product, index, onAdd, onPress, onSeeMore 
   const title = product.title || product.name || "Produit";
   const pressScale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: pressScale.value }] }));
+  const [sparkle, setSparkle] = useState(0);
 
   const inStock = product.stock === undefined ? true : product.stock > 0;
+
+  function handleAdd() {
+    setSparkle((k) => k + 1);
+    onAdd?.(product);
+  }
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).springify().damping(16)} style={styles.card}>
@@ -46,10 +53,11 @@ export default function ProductCard({ product, index, onAdd, onPress, onSeeMore 
             </View>
           )}
           {onAdd && inStock && (
-            <TouchableOpacity style={styles.addBtn} onPress={() => onAdd(product)} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.8}>
               <Text style={styles.addBtnText}>+</Text>
             </TouchableOpacity>
           )}
+          <SparkleEffect trigger={sparkle} />
         </View>
         <View style={styles.info}>
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
