@@ -49,7 +49,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "is_active", "is_available", "category", "category_id",
             "shop", "shop_id", "shop_name", "created_at",
         ]
-        read_only_fields = ["shop", "created_at", "image", "video"]
+        read_only_fields = ["shop", "created_at"]
 
     def get_image_url(self, obj):
         request = self.context.get("request")
