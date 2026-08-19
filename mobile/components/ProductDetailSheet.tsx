@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, Modal, StyleSheet, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
-import { formatFCFA } from "@/lib/api";
+import { formatFCFA, mediaUrl } from "@/lib/api";
 import { ProductItem, useCart } from "@/contexts/CartContext";
 
 interface Props {
@@ -24,7 +24,7 @@ export default function ProductDetailSheet({ visible, product, onClose }: Props)
         <TouchableOpacity activeOpacity={1} style={styles.sheet}>
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {product.image && (
-              <Image source={{ uri: product.image }} style={styles.image} />
+              <Image source={{ uri: mediaUrl(product.image) }} style={styles.image} />
             )}
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.price}>{formatFCFA(product.price)}</Text>

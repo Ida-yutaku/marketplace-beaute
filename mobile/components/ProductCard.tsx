@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
-import { formatFCFA } from "@/lib/api";
+import { formatFCFA, mediaUrl } from "@/lib/api";
 import { ProductItem } from "@/contexts/CartContext";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -34,7 +34,7 @@ export default function ProductCard({ product, index, onAdd, onPress, onSeeMore 
       >
         <View style={styles.imageWrap}>
           {product.image ? (
-            <Image source={{ uri: product.image }} style={styles.image} />
+            <Image source={{ uri: mediaUrl(product.image) }} style={styles.image} />
           ) : (
             <View style={styles.placeholder}>
               <Ionicons name="camera-outline" size={32} color={colors.outlineVariant} />
