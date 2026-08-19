@@ -12,7 +12,7 @@ import {
 import { useRouter, useFocusEffect } from "expo-router";
 import Animated, { FadeIn, FadeInDown, Layout } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Order, Product, Shop, formatFCFA } from "@/lib/api";
+import { api, Order, Product, Shop, formatFCFA, mediaUrl } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert, confirmAlert } from "@/lib/alert";
 import SellerBottomNav from "@/components/SellerBottomNav";
@@ -215,7 +215,7 @@ export default function VendeurDashboard() {
             <TouchableOpacity activeOpacity={0.8} onPress={() => router.push(`/vendeur/${item.id}`)}>
               <View style={styles.imageWrap}>
                 {item.image_url || item.image ? (
-                  <Image source={{ uri: item.image_url ?? item.image! }} style={styles.image} />
+                  <Image source={{ uri: mediaUrl(item.image_url) ?? mediaUrl(item.image)! }} style={styles.image} />
                 ) : (
                   <View style={styles.imagePlaceholder}>
                     <Ionicons name="camera-outline" size={28} color={colors.outlineVariant} />

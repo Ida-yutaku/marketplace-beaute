@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Product, Category } from "@/lib/api";
+import { api, Product, Category, mediaUrl } from "@/lib/api";
 import { useCart, ProductItem } from "@/contexts/CartContext";
 import { colors } from "@/lib/theme";
 import ProductCard from "@/components/ProductCard";
@@ -34,7 +34,7 @@ export default function CatalogScreen() {
   function toProductItem(p: Product): ProductItem {
     return {
       id: p.id, title: p.title, price: p.price,
-      image: p.image_url ?? p.image ?? undefined,
+      image: mediaUrl(p.image_url) ?? mediaUrl(p.image),
       description: p.description, stock: p.stock, is_available: p.is_available,
     };
   }

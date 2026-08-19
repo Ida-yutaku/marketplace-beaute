@@ -4,7 +4,7 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Category, Product } from "@/lib/api";
+import { api, Category, Product, mediaUrl } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert } from "@/lib/alert";
 
@@ -29,7 +29,7 @@ export default function EditProductScreen() {
         title: p.title, description: p.description, price: p.price,
         stock: String(p.stock), category_id: p.category ? String(p.category.id) : "",
       });
-      setCurrentImage(p.image_url ?? p.image);
+      setCurrentImage(mediaUrl(p.image_url) ?? mediaUrl(p.image) ?? null);
       setCurrentVideo(p.video ?? null);
       setLoading(false);
     });

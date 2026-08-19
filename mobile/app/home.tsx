@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { View, Text, FlatList, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { api, Product, Category } from "@/lib/api";
+import { api, Product, Category, mediaUrl } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useCart, ProductItem } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
@@ -40,7 +40,7 @@ export default function HomeScreen() {
   function toProductItem(p: Product): ProductItem {
     return {
       id: p.id, title: p.title, price: p.price,
-      image: p.image_url ?? p.image ?? undefined,
+      image: mediaUrl(p.image_url) ?? mediaUrl(p.image),
       description: p.description, stock: p.stock, is_available: p.is_available,
     };
   }

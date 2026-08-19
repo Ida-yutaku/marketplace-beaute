@@ -5,6 +5,13 @@ const RAW_API_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://marketplace-beaute-api.onrender.com/api';
 
 export const API_BASE_URL = RAW_API_URL.replace(/\/$/, "");
+const API_HOST = API_BASE_URL.replace(/\/api$/, "");
+
+export function mediaUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (path.startsWith("http")) return path;
+  return `${API_HOST}${path}`;
+}
 
 async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem("access_token");
