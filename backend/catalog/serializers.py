@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.utils.encoding import iri_to_uri
 
 from rest_framework import serializers
 
@@ -15,16 +14,19 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 def _absolute_url(request, relative_url: str | None) -> str | None:
-    """Convert a relative /media/... path to an absolute URL."""
+    """Return a full absolute URL for a media file.
+
+    - Cloudinary returns full https:// URLs → returned as-is
+    - Local /media/... paths → converted using request host or API_HOST env
+    """
     if not relative_url:
         return None
     if relative_url.startswith("http"):
         return relative_url
-    # Build absolute URL from request or from API env
     if request:
-        return iri_to_uri(f"{request.scheme}://{request.get_host()}{relative_url}")
+        return f"{request.scheme}://{request.get_host()}{relative_url}"
     from .views import API_HOST
-    return iri_to_uri(f"{API_HOST}{relative_url}")
+    return f"{API_HOST}{relative_url}"
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -51,11 +53,21 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         request = self.context.get("request")
-        return _absolute_url(request, obj.image.url if obj.image else None)
+        if obj.image:
+            try:
+                return _absolute_url(request, obj.image.url)
+            except Exception:
+                return _absolute_url(request, obj.image.name)
+        return None
 
     def get_video_url(self, obj):
         request = self.context.get("request")
-        return _absolute_url(request, obj.video.url if obj.video else None)
+        if obj.video:
+            try:
+                return _absolute_url(request, obj.video.url)
+            except Exception:
+                return _absolute_url(request, obj.video.name)
+        return None
 
     def validate_shop_id(self, shop):
         request = self.context.get("request")

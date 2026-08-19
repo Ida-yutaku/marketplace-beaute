@@ -6,6 +6,8 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+import cloudinary
+import cloudinary_storage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -35,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    "cloudinary_storage",
     # local apps
     "users",
     "catalog",
@@ -45,7 +48,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Ajouté pour les fichiers statiques sur Render
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -100,11 +103,7 @@ USE_TZ = True
 # --- Static & Media files ---
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# Stockage optimisé avec WhiteNoise pour la production
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -112,9 +111,24 @@ STORAGES = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-API_HOST = os.getenv("API_HOST", "https://marketplace-beaute-api.onrender.com")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- Cloudinary (images uploadées) ---
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY", ""),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET", ""),
+}
+
+# Si Cloudinary est configuré, l'utiliser pour les médias ; sinon fallback sur FileSystem
+if CLOUDINARY_STORAGE["CLOUD_NAME"]:
+    STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"}
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    STORAGES["default"] = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+
+API_HOST = os.getenv("API_HOST", "https://marketplace-beaute-api.onrender.com")
 
 # --- DRF ---
 REST_FRAMEWORK = {
@@ -132,7 +146,7 @@ SIMPLE_JWT = {
 }
 
 # --- CORS ---
-CORS_ALLOW_ALL_ORIGINS = True  # Indispensable pour éviter les blocages sur mobile/Expo
+CORS_ALLOW_ALL_ORIGINS = True
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 CORS_ALLOW_HEADERS = [
     "accept",
