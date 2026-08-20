@@ -17,6 +17,23 @@ async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem("access_token");
 }
 
+async function getCachedMe(): Promise<Me | null> {
+  try {
+    const raw = await AsyncStorage.getItem("cached_me");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function cacheMe(me: Me): Promise<void> {
+  await AsyncStorage.setItem("cached_me", JSON.stringify(me));
+}
+
+async function clearCachedMe(): Promise<void> {
+  await AsyncStorage.removeItem("cached_me");
+}
+
 export class ApiError extends Error {
   status: number;
   fields: Record<string, string[]>;
@@ -166,12 +183,15 @@ export const api = {
     );
     await AsyncStorage.setItem("access_token", data.access);
     await AsyncStorage.setItem("refresh_token", data.refresh);
+    const me = await apiFetch<Me>("/auth/me/");
+    await cacheMe(me);
     return data;
   },
 
   logout: async () => {
     await AsyncStorage.removeItem("access_token");
     await AsyncStorage.removeItem("refresh_token");
+    await clearCachedMe();
   },
 
   isLoggedIn: async () => {
@@ -179,7 +199,13 @@ export const api = {
     return !!token;
   },
 
-  me: () => apiFetch<Me>("/auth/me/"),
+  getCachedMe,
+
+  me: async () => {
+    const me = await apiFetch<Me>("/auth/me/");
+    await cacheMe(me);
+    return me;
+  },
 
   register: (data: {
     username: string;

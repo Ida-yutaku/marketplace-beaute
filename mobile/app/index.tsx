@@ -11,12 +11,17 @@ export default function IndexScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    api.isLoggedIn().then((logged) => {
-      if (logged) {
-        api.me().then((me) => {
-          router.replace(me.is_seller ? "/vendeur" : "/home");
-        }).catch(() => {});
+    api.isLoggedIn().then(async (logged) => {
+      if (!logged) return;
+      const cached = await api.getCachedMe();
+      if (cached) {
+        router.replace(cached.is_seller ? "/vendeur" : "/home");
+        return;
       }
+      try {
+        const me = await api.me();
+        router.replace(me.is_seller ? "/vendeur" : "/home");
+      } catch {}
     });
   }, []);
 
