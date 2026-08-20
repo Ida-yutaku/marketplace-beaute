@@ -15,6 +15,7 @@ import { api, Shop } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { showAlert } from "@/lib/alert";
 import SellerBottomNav from "@/components/SellerBottomNav";
+import InteractiveHoverButton from "@/components/InteractiveHoverButton";
 
 export default function BoutiquesScreen() {
   const router = useRouter();
@@ -136,15 +137,13 @@ export default function BoutiquesScreen() {
               value={description}
               onChangeText={setDescription}
             />
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleCreate}
+            <InteractiveHoverButton
               disabled={loading}
-              activeOpacity={0.85}
+              onPress={handleCreate}
             >
               <Ionicons name="add-circle-outline" size={18} color={colors.onPrimary} />
-              <Text style={styles.buttonText}>{loading ? "Création..." : "Créer la boutique"}</Text>
-            </TouchableOpacity>
+              {loading ? "Création..." : "Créer la boutique"}
+            </InteractiveHoverButton>
           </Animated.View>
         }
       />

@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { formatFCFA, mediaUrl } from "@/lib/api";
 import { ProductItem, useCart } from "@/contexts/CartContext";
+import InteractiveHoverButton from "./InteractiveHoverButton";
 
 interface Props {
   visible: boolean;
@@ -46,20 +47,17 @@ export default function ProductDetailSheet({ visible, product, onClose }: Props)
           </ScrollView>
 
           <View style={styles.footer}>
-            <TouchableOpacity
-              style={[styles.addBtn, !inStock && styles.addBtnDisabled]}
+            <InteractiveHoverButton
               disabled={!inStock}
               onPress={() => {
                 addToCart(product);
                 onClose();
               }}
-              activeOpacity={0.8}
+              style={{ flex: 1, borderRadius: 12 }}
             >
               <Ionicons name="cart-outline" size={18} color={colors.onPrimary} />
-              <Text style={styles.addBtnText}>
-                {inStock ? "Ajouter au panier" : "Indisponible"}
-              </Text>
-            </TouchableOpacity>
+              {inStock ? "Ajouter au panier" : "Indisponible"}
+            </InteractiveHoverButton>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7}>
               <Ionicons name="close" size={22} color={colors.onSurface} />
             </TouchableOpacity>

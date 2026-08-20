@@ -6,6 +6,7 @@ import { colors } from "@/lib/theme";
 import { formatFCFA, mediaUrl } from "@/lib/api";
 import { ProductItem } from "@/contexts/CartContext";
 import SparkleEffect from "./SparkleEffect";
+import InteractiveHoverButton from "./InteractiveHoverButton";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -63,10 +64,14 @@ export default function ProductCard({ product, index, onAdd, onPress, onSeeMore 
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
           <Text style={styles.price}>{formatFCFA(product.price)}</Text>
           {onSeeMore && (
-            <TouchableOpacity style={styles.seeMoreBtn} onPress={onSeeMore} activeOpacity={0.7}>
-              <Text style={styles.seeMoreText}>Voir plus</Text>
-              <Ionicons name="chevron-forward" size={12} color={colors.primary} />
-            </TouchableOpacity>
+            <InteractiveHoverButton
+              variant="outline"
+              onPress={onSeeMore}
+              style={styles.seeMoreBtn}
+              textStyle={styles.seeMoreText}
+            >
+              Voir plus
+            </InteractiveHoverButton>
           )}
         </View>
       </AnimatedTouchable>
