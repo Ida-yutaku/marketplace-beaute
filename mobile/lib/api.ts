@@ -195,6 +195,8 @@ export const api = {
   createShop: (data: { name: string; description?: string }) =>
     apiFetch<Shop>("/shops/", { method: "POST", body: JSON.stringify(data) }),
 
+  deleteShop: (id: number) => apiFetch<void>(`/shops/${id}/`, { method: "DELETE" }),
+
   getCategories: () => apiFetch<Category[]>("/categories/"),
 
   getProducts: (params?: { category?: string; search?: string; mine?: boolean }) => {

@@ -1,10 +1,26 @@
 import { Alert, Platform } from "react-native";
 
-export function showAlert(title: string, message?: string) {
+interface AlertAction {
+  text: string;
+  style?: "default" | "cancel" | "destructive";
+  onPress?: () => void;
+}
+
+export function showAlert(title: string, message?: string, actions?: AlertAction[]) {
   if (Platform.OS === "web") {
-    window.alert(message ? `${title}\n\n${message}` : title);
+    if (actions?.some((a) => a.style === "destructive")) {
+      if (window.confirm(`${title}\n\n${message}`)) {
+        actions.find((a) => a.style === "destructive")?.onPress?.();
+      }
+    } else {
+      window.alert(message ? `${title}\n\n${message}` : title);
+    }
   } else {
-    Alert.alert(title, message);
+    Alert.alert(
+      title,
+      message,
+      actions?.map((a) => ({ text: a.text, style: a.style, onPress: a.onPress }))
+    );
   }
 }
 

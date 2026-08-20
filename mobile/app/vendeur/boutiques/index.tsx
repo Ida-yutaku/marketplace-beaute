@@ -52,6 +52,26 @@ export default function BoutiquesScreen() {
     }
   }
 
+  async function handleDelete(id: number) {
+    try {
+      await api.deleteShop(id);
+      loadShops();
+    } catch {
+      showAlert("Erreur", "La suppression a échoué.");
+    }
+  }
+
+  async function confirmDelete(id: number, shopName: string) {
+    showAlert(
+      "Supprimer la boutique",
+      `Supprimer « ${shopName} » ? Cette action est irréversible.`,
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Supprimer", style: "destructive", onPress: () => handleDelete(id) },
+      ]
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
@@ -87,6 +107,13 @@ export default function BoutiquesScreen() {
                 )}
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.outlineVariant} />
+              <TouchableOpacity
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={() => confirmDelete(item.id, item.name)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.error} />
+              </TouchableOpacity>
             </TouchableOpacity>
           </Animated.View>
         )}
